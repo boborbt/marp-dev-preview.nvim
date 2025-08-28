@@ -4,8 +4,8 @@ Seamlessly integrate [Marp Dev Preview](https://github.com/boborbt/marp-dev-prev
 
 ## Features
 
-- **Auto Sync Slides** – Keep your Markdown slide position synced with the preview.  
-  (*One-way sync: browser → NeoVim not supported.*)  
+- **Auto Sync Slides** – Keep your Markdown slide position synced with the preview.  (*One-way sync: browser → NeoVim not supported.*)  
+- **Auto Save Slides** - Automatically save the marp file every 1000ms (configurable)
 - **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.  
 - **Find String** – Search text in the preview. Temporarily disables auto-sync.  
 
@@ -29,6 +29,7 @@ use {
 
 ```lua
 vim.api.nvim_set_keymap('n', '<leader>mt', '<cmd>MarpDevPreviewToggleLiveSync<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>ms', '<cmd>MarpDevPreviewToggleAutoSave<CR>', { noremap = true, silent = true }) -- save file
 vim.api.nvim_set_keymap('n', '<leader>mg', '<cmd>MarpDevPreviewGoto<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>mf', '<cmd>MarpDevPreviewFind<CR>', { noremap = true, silent = true })
 ```
@@ -36,8 +37,9 @@ vim.api.nvim_set_keymap('n', '<leader>mf', '<cmd>MarpDevPreviewFind<CR>', { nore
 Or use the Lua API directly:
 
 ```lua
-require('marp-dev-preview').toggle_auto_sync()
-require('marp-dev-preview').goto()
+require('marp-dev-preview').toggle_live_sync()
+require('marp-dev-preview').toggle_auto_save()
+require('marp-dev-preview').goto_slide()
 require('marp-dev-preview').find()
 ```
 
