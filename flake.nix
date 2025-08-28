@@ -30,6 +30,7 @@
 
           shellHook = ''
             export XDG_CONFIG_HOME=$(pwd)/.config
+	    export PATH=$PATH:$HOME/.luarocks/bin
             echo "Nix dev shell configured to use local nvim config"
           '';
         };

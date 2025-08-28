@@ -1,17 +1,15 @@
 rockspec_format = '3.0'
--- TODO: Rename this file and set the package
-package = "nvim-lua-plugin"
+package = "marp-dev-preview"
 version = "scm-1"
 source = {
   -- TODO: Update this URL
-  url = "git+https://github.com/nvim-lua/nvim-lua-plugin-template"
+  url = "git+https://github.com/boborbt/marp-dev-preview.nvim"
 }
+
 dependencies = {
-  -- Add runtime dependencies here
-  -- e.g. "plenary.nvim",
+  "plenary.nvim"
 }
 test_dependencies = {
-  "nlua"
 }
 build = {
   type = "builtin",

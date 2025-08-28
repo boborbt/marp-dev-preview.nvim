@@ -1,10 +1,21 @@
 -- TODO:
--- Add an option to set the server port
+-- to be handled correctly the auto_save option:
+--  - if it is on, then for every new marp file opened, call toggle_auto_save to turn
+--    the timer on. mmm... there can be at most one file opened (the server is listening
+--    on the fixed port configured here)
+--    - should have been fixed... the plugin will monitor file changes and, if auto_save
+--      is true will start the autosaving on markdown files.
+--  - if it is off, leave to the user turning it on
 -- [longterm] Start the server from within Neovim if not running
 
 local M = {}
 local H = {
   config = {
+    -- marp-dev-preview server port
+    port = 8080,
+    -- marp-dev-preview server connection_timeout
+    timeout=1000,
+
     live_sync = false,
     auto_save = false,
     --- autosave every second if file
@@ -19,12 +30,28 @@ local H = {
 }
 
 M.setup = function(config)
+  print(config)
+
   if not config then
     config = {}
   end
 
   -- updates default_config with user options
   for k, v in pairs(config) do H.config[k] = v end
+end
+
+M.is_marp = function()
+  if vim.bo.filetype ~= "markdown" then
+    return false
+  end
+
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, 20, false)) do
+    if line:match "^[ \t]*marp[ \t]*:[ \t]*true[ \t]*$" then
+      return true
+    end
+  end
+
+  return false
 end
 
 M.current_slide_number = function()
@@ -39,21 +66,29 @@ M.current_slide_number = function()
 end
 
 M.server_cmd = function(cmd, arg)
+  vim.notify("connecting to port "..H.config.port)
+
   local curl = require("plenary.curl")
-  local response = curl.post("http://localhost:8080/api/command", {
-    body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
-    headers = { ["Content-Type"] = "application/json" },
-  })
-  return response
+  local call_curl = function()
+    return curl.post("http://localhost:"..H.config.port.."/api/command", {
+      body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
+      headers = { ["Content-Type"] = "application/json" },
+      timeout = H.config.timeout,
+    })
+  end
+
+  local ok, response = pcall(call_curl)
+
+  return ok, response
 end
 
 M._goto_slide = function(slide_number)
   if slide_number then
-    local response = M.server_cmd("goto", { key = "slide", value = slide_number })
-    if response.status == 200 then
+    local ok, response = M.server_cmd("goto", { key = "slide", value = slide_number })
+    if ok and response.status == 200 then
       vim.notify("Went to slide " .. slide_number, vim.log.levels.DEBUG)
     else
-      vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
+      vim.notify("Failed to go to slide: " .. response, vim.log.levels.ERROR)
     end
   end
 end
@@ -83,8 +118,8 @@ end
 M.find = function()
   local input = vim.fn.input("Search string: ")
   if input ~= "" then
-    local response = M.server_cmd("find", { key = "string", value = input })
-    if response.status == 200 then
+    local ok, response = M.server_cmd("find", { key = "string", value = input })
+    if ok and response.status == 200 then
       vim.notify("Searched for '" .. input .. "'", vim.log.levels.INFO)
       H.config.live_sync = false
     else
@@ -101,26 +136,36 @@ M.toggle_live_sync = function()
   end
 end
 
+M.auto_save_is_on = function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if H.timers[bufnr] == nil then  -- the timer was not running
+    return false
+  else
+    return true
+  end
+end
+
 M.toggle_auto_save = function()
   -- bail out if the file type is not markdown
-  if vim.bo.filetype ~= "markdown" then
+  if not M.is_marp() then
     return
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
 
-  if H.timers[bufnr] == nil then  -- the timer was not running
+  if not M.auto_save_is_on() then
+    -- start auto_save
     H.timers[bufnr] = vim.loop.new_timer()
 
-    vim.notify("Started auto-save on buffer: "..bufnr)
-
-    H.timers[bufnr]:start(1000, 1000, vim.schedule_wrap(function()
+    vim.notify("Started auto-save on buffer: "..bufnr, vim.log.levels.INFO)
+    H.timers[bufnr]:start(H.auto_save_debounce, H.auto_save_debounce, vim.schedule_wrap(function()
       if vim.bo.modified then
         vim.cmd("update")  -- save if modified and markdown
       end
     end))
   else
-    vim.notify("Stopping auto-save on buffer: "..bufnr)
+    -- stop auto_save
+    vim.notify("Stopping auto-save on buffer: "..bufnr, vim.log.levels.INFO)
 
     H.timers[bufnr]:stop()
     H.timers[bufnr]:close()
@@ -128,10 +173,20 @@ M.toggle_auto_save = function()
   end
 end
 
-vim.api.nvim_create_augroup("SlideSync", { clear = true })
+vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
+
+vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+  group = "MarpDevPreview",
+  pattern = "*.md",
+  callback = function()
+    if H.auto_save and not H.auto_save_is_on() then
+      M.toggle_auto_save()
+    end
+  end
+})
 
 vim.api.nvim_create_autocmd("CursorMoved", {
-  group = "SlideSync",
+  group = "MarpDevPreview",
   pattern = "*.md",
   callback = function()
     if H.config.live_sync then
