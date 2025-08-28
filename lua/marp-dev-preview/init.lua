@@ -1,3 +1,8 @@
+-- TODO:
+-- 1. make goto and find to switch off auto_sync
+-- 2. make "toggling auto_sync to true" to call goto_current_slide
+
+
 local M = {}
 local H = {
   config = {
@@ -48,7 +53,13 @@ end
 M.goto = function()
   local input = vim.fn.input("Slide number: ")
   local slide_number = tonumber(input)
-  M._goto(slide_number)
+
+  -- this is a little repetitive, but avoids turnig off setting live sync
+  -- if the slide_number is not valid
+  if slide_number then
+    M._goto(slide_number)
+    H.config.live_sync = false
+  end
 end
 
 M._last_slide_number = nil
@@ -67,6 +78,7 @@ M.find = function()
     local response = M.server_cmd("find", { key = "string", value = input })
     if response.status == 200 then
       vim.notify("Searched for '" .. input .. "'", vim.log.levels.INFO)
+      H.config.live_sync = false
     else
       vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
     end
@@ -76,6 +88,9 @@ end
 
 M.toggle_live_sync = function()
   H.config.live_sync = not H.config.live_sync
+  if H.config.live_sync then
+    M.goto_current_slide()
+  end
 end
 
 vim.api.nvim_create_augroup("SlideSync", { clear = true })
