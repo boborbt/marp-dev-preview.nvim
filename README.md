@@ -1,93 +1,114 @@
-# nvim-lua-plugin-template
+# Marp Dev Preview - NeoVim Plugin
 
-This repository is a template for Neovim plugins written in Lua.
-
-The intention is that you use this template to create a new repository where you then adapt this readme and add your plugin code.
-The template includes the following:
-
-- GitHub workflows and configurations to run linters and tests
-- Packaging of tagged releases and upload to [LuaRocks][luarocks]
-  if a [`LUAROCKS_API_KEY`][luarocks-api-key] is added
-  to the [GitHub Actions secrets][gh-actions-secrets]
-- Minimal test setup:
-  - A `scm` [rockspec][rockspec-format], `nvim-lua-plugin-scm-1.rockspec`
-  - A `.busted` file
-- EditorConfig
-- A .luacheckrc
-
-
-To get started writing a Lua plugin, I recommend reading `:help lua-guide` and
-`:help write-plugin`.
-
-## Scope
-
-Anything that the majority of plugin authors will want to have is in scope of
-this starter template. Anything that is controversial is out-of-scope.
-
-## Usage
-
-- Click [Use this template][use-this-template]. Do not fork.
-- Rename `nvim-lua-plugin-scm-1.rockspec` and change the `package` name
-  to the name of your plugin.
-
-## Template License
-
-The template itself is licensed under the [MIT license](https://en.wikipedia.org/wiki/MIT_License).
-The template doesn't include a LICENSE file. You should add one after creating your repository.
+Seamlessly integrate Marp Dev Preview into NeoVim with slide syncing and quick navigation.
 
 ---
 
+# Marp Dev Preview - NeoVim Plugin
 
-The remainder of the README is text that can be preserved in your plugin:
+Seamlessly integrate Marp Dev Preview into NeoVim with slide syncing and quick navigation.
 
 ---
 
+## Quick Start
 
-## Development
+**Install with `lazy.nvim`:**
 
-### Run tests
-
-
-Running tests requires either
-
-- [luarocks][luarocks]
-- or [busted][busted] and [nlua][nlua]
-
-to be installed[^1].
-
-[^1]: The test suite assumes that `nlua` has been installed
-      using luarocks into `~/.luarocks/bin/`.
-
-You can then run:
-
-```bash
-luarocks test --local
-# or
-busted
+```lua
+use {
+  'boborbt/marp-dev-preview.nvim',
+  requires = { 'nvim-lua/plenary.nvim' },
+  config = function()
+    require('marp-dev-preview').setup({ auto_sync = true })
+  end
+}
 ```
 
-Or if you want to run a single test file:
+**Suggested Keybindings:**
 
-```bash
-luarocks test spec/path_to_file.lua --local
-# or
-busted spec/path_to_file.lua
+```lua
+vim.api.nvim_set_keymap('n', '<leader>mt', '<cmd>MarpDevPreviewToggleLiveSync<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>mg', '<cmd>MarpDevPreviewGoto<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>mf', '<cmd>MarpDevPreviewFind<CR>', { noremap = true, silent = true })
 ```
 
-If you see an error like `module 'busted.runner' not found`:
+Or use the Lua API directly:
 
-```bash
-eval $(luarocks path --no-bin)
+```lua
+require('marp-dev-preview').toggle_auto_sync()
+require('marp-dev-preview').goto()
+require('marp-dev-preview').find()
 ```
 
-For this to work you need to have Lua 5.1 set as your default version for
-luarocks. If that's not the case you can pass `--lua-version 5.1` to all the
-luarocks commands above.
+---
 
-[rockspec-format]: https://github.com/luarocks/luarocks/wiki/Rockspec-format
-[luarocks]: https://luarocks.org
-[luarocks-api-key]: https://luarocks.org/settings/api-keys
-[gh-actions-secrets]: https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository
-[busted]: https://lunarmodules.github.io/busted/
-[nlua]: https://github.com/mfussenegger/nlua
-[use-this-template]: https://github.com/new?template_name=nvim-lua-plugin-template&template_owner=nvim-lua
+## Features
+
+- **Auto Sync Slides** – Keep your Markdown slide position synced with the preview.  
+  (*One-way sync: browser → NeoVim not supported.*)  
+- **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.  
+- **Find String** – Search text in the preview. Temporarily disables auto-sync.  
+
+---
+
+## Configuration
+
+```lua
+require('marp-dev-preview').setup({
+  auto_sync = true, -- boolean: enable/disable auto-sync (default: true)
+})
+```
+
+---
+
+## Contributing
+
+I’m new to Lua and NeoVim plugin development. Feedback, issues, and pull requests are welcome! Help improve the plugin for everyone.
+
+
+## Quick Start
+
+**Install with `lazy.nvim`:**
+
+```lua
+use {
+  'boborbt/marp-dev-preview.nvim',
+  requires = { 'nvim-lua/plenary.nvim' },
+  config = function()
+    require('marp-dev-preview').setup({ auto_sync = true })
+  end
+}
+```
+
+**Suggested Keybindings:**
+
+```lua
+vim.api.nvim_set_keymap('n', '<leader>mt', '<cmd>MarpDevPreviewToggleLiveSync<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>mg', '<cmd>MarpDevPreviewGoto<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>mf', '<cmd>MarpDevPreviewFind<CR>', { noremap = true, silent = true })
+```
+
+Or use the Lua API directly:
+
+```lua
+require('marp-dev-preview').toggle_auto_sync()
+require('marp-dev-preview').goto()
+require('marp-dev-preview').find()
+```
+
+---
+
+## Configuration
+
+```lua
+require('marp-dev-preview').setup({
+  auto_sync = true, -- boolean: enable/disable auto-sync (default: true)
+})
+```
+
+---
+
+## Contributing
+
+I’m new to Lua and NeoVim plugin development. Feedback, issues, and pull requests are welcome! Help improve the plugin for everyone.
+
