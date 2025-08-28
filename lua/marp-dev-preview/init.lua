@@ -1,7 +1,6 @@
 -- TODO:
--- 1. make goto and find to switch off auto_sync
--- 2. make "toggling auto_sync to true" to call goto_current_slide
-
+-- Add an option to set the server port
+-- [longterm] Start the server from within Neovim if not running
 
 local M = {}
 local H = {

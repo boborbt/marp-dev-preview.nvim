@@ -18,7 +18,7 @@ exe "lua package.path = package.path .. ';" . s:plenary_path . "/?.lua'"
 exe "lua package.path = package.path .. ';" . s:plenary_path . "/?/init.lua'"
 
 " Exposes the plugin's functions for use as commands in Neovim.
-command! -nargs=0 MarpDevPreviewToggleLiveSync lua require("marp-dev-preview").toggle_auto_save()
+command! -nargs=0 MarpDevPreviewToggleAutoSave lua require("marp-dev-preview").toggle_auto_save()
 command! -nargs=0 MarpDevPreviewToggleLiveSync lua require("marp-dev-preview").toggle_live_sync()
 command! -nargs=0 MarpDevPreviewGoTo lua require("marp-dev-preview").goto_slide()
 command! -nargs=0 MarpDevPreviewFind lua require("marp-dev-preview").find()
