@@ -4,12 +4,6 @@ Seamlessly integrate Marp Dev Preview into NeoVim with slide syncing and quick n
 
 ---
 
-# Marp Dev Preview - NeoVim Plugin
-
-Seamlessly integrate Marp Dev Preview into NeoVim with slide syncing and quick navigation.
-
----
-
 ## Quick Start
 
 **Install with `lazy.nvim`:**
