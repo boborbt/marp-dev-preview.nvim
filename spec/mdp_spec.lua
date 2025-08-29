@@ -152,6 +152,43 @@ describe('goto_slide', function()
     vim.fn.input = fn_input
   end)
 
+  it('notifies the user in case of server error', function()
+    local sc_cmd
+    local sc_args
+
+    -- mocks the server_cmd function so that the
+    -- server is not really invoked
+    mdp.server_cmd = function(cmd, args)
+      sc_cmd = cmd
+      sc_args = args
+      return nil, { body="error body" }
+    end
+
+    local fn_input = vim.fn.input
+    vim.fn.input = function(args)
+      return "10"
+    end
+
+    local notify_str
+    local notify_lvl
+    local notify = vim.fn.notify
+
+    vim.notify = function(str, level)
+      notify_str = str
+      notify_lvl = level
+    end
+
+    mdp.goto_slide()
+
+    eq("goto", sc_cmd)
+    eq({ key="slide", value=10 }, sc_args)
+    eq("Failed to go to slide: error body", notify_str)
+    eq(vim.log.levels.ERROR, notify_lvl)
+
+    vim.fn.input = fn_input
+    vim.notify = notify
+  end)
+
   it('does not call the server and notifies the user in case the inserted slide number is not a number', function()
     local sc_cmd
     local sc_args
@@ -184,9 +221,6 @@ describe('goto_slide', function()
     vim.fn.input = fn_input
     vim.notify = notify
   end)
-
-
-
 end)
 
 
