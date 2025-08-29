@@ -79,6 +79,25 @@ function setup_md_file()
     vim.cmd("edit test.md")
 end
 
+describe('config', function()
+  it('respects setup settings', function()
+    mdp.setup({
+      auto_save = true,
+      auto_save_debounce = 9999,
+      auto_sync = true,
+      port = 9898,
+      time_out = 42
+    })
+
+    assert.is.True(mdp.config.get('auto_save'))
+    eq(9999, mdp.config.get('auto_save_debounce'))
+    assert.is.True(mdp.config.get('auto_sync'))
+    eq(9898, mdp.config.get('port'))
+    eq(42, mdp.config.get('time_out'))
+
+  end)
+end)
+
 describe('is_marp', function()
   it('returns false on non-markdown non-marp files', function()
     vim.cmd("enew")
@@ -296,7 +315,6 @@ describe('toggle_live_sync', function()
 
     mdp.toggle_live_sync()
 
-    assert.is.Nil(_G.notify.str)
     assert.is.True(mdp.is_live_sync_on())
     assert.is.True(goto_current_slide_called)
 

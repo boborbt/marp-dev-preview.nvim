@@ -38,7 +38,7 @@ M.config = {
     H.config[opt] = val
   end,
 
-  get = function()
+  get = function(opt)
     return H.config[opt]
   end
 }
