@@ -26,11 +26,24 @@ local H = {
   -- we need to activate timers bufferwise,
   -- otherwise we may start it on one buffer
   -- and start saving on another one
-  timers = {}
+  timers = {},
+
+  -- same thing with live_sync, here it
+  -- simpler because we don't have timers
+  live_buffers = {}
+}
+
+M.config = {
+  set = function(opt, val)
+    H.config[opt] = val
+  end,
+
+  get = function()
+    return H.config[opt]
+  end
 }
 
 M.setup = function(config)
-  print(config)
 
   if not config then
     config = {}
@@ -101,7 +114,7 @@ M.goto_slide = function()
   -- if the slide_number is not valid
   if slide_number then
     M._goto_slide(slide_number)
-    H.config.live_sync = false
+    M.set_live_sync(false)
   else
     vim.notify(input .. " is not a valid number", vim.log.levels.DEBUG)
   end
@@ -123,19 +136,42 @@ M.find = function()
     local ok, response = M.server_cmd("find", { key = "string", value = input })
     if ok and response.status == 200 then
       vim.notify("Searched for '" .. input .. "'", vim.log.levels.INFO)
-      H.config.live_sync = false
+      M.set_live_sync(false)
     else
       vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
     end
   end
 end
 
+M.set_live_sync = function(val)
+  if val and not M.is_marp() then
+    vim.notify("Refusing to start live sync on non-marp file")
+  end
 
+
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  H.live_buffers[bufnr] = val
+end
+
+-- Toggle live sync for the current file. This does not activate/deactivate
+-- config.live_sync (which can be done calling M.config.set('live_sync', true/false)
 M.toggle_live_sync = function()
-  H.config.live_sync = not H.config.live_sync
-  if H.config.live_sync then
+  if not M.is_marp() then
+    vim.notify("Refusing to start live sync on non-marp file")
+  end
+
+
+  M.set_live_sync(not M.is_live_sync_on())
+
+  if M.is_live_sync_on() then
     M.goto_current_slide()
   end
+end
+
+M.is_live_sync_on = function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  return H.live_buffers[bufnr]
 end
 
 M.auto_save_is_on = function()
@@ -147,9 +183,22 @@ M.auto_save_is_on = function()
   end
 end
 
+M._get_timers = function()
+  return H.timers
+end
+
+M._clear_timer = function(bufnr)
+  H.timers[bufnr]:stop()
+  H.timers[bufnr]:close()
+  H.timers[bufnr] = nil
+end
+
+-- Toggle auto save for the current file. This does not activate/deactivate
+-- config.auto_save (which can be done by calling M.config.set('auto_save', true/false)
 M.toggle_auto_save = function()
   -- bail out if the file type is not markdown
   if not M.is_marp() then
+    vim.notify("MDP: refusing to start auto_save on non marp files")
     return
   end
 
@@ -160,7 +209,7 @@ M.toggle_auto_save = function()
     H.timers[bufnr] = vim.loop.new_timer()
 
     vim.notify("Started auto-save on buffer: "..bufnr, vim.log.levels.INFO)
-    H.timers[bufnr]:start(H.auto_save_debounce, H.auto_save_debounce, vim.schedule_wrap(function()
+    H.timers[bufnr]:start(H.config.auto_save_debounce, H.config.auto_save_debounce, vim.schedule_wrap(function()
       if vim.bo.modified then
         vim.cmd("update")  -- save if modified and markdown
       end
@@ -169,9 +218,7 @@ M.toggle_auto_save = function()
     -- stop auto_save
     vim.notify("Stopping auto-save on buffer: "..bufnr, vim.log.levels.INFO)
 
-    H.timers[bufnr]:stop()
-    H.timers[bufnr]:close()
-    H.timers[bufnr] = nil
+    M._clear_timer(bufnr)
   end
 end
 
@@ -181,8 +228,20 @@ vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
   group = "MarpDevPreview",
   pattern = "*.md",
   callback = function()
-    if H.auto_save and not H.auto_save_is_on() then
+    if H.config.auto_save then
       M.toggle_auto_save()
+    end
+
+    M.set_live_sync(H.config.live_sync)
+  end
+})
+
+vim.api.nvim_create_autocmd({"BufUnload", "BufWipeout"}, {
+  group = "MarpDevPreview",
+  pattern = "*.md",
+  callback = function(args)
+    if H.timers[args.buf] then
+      M._clear_timer(args.buf)
     end
   end
 })
@@ -191,7 +250,7 @@ vim.api.nvim_create_autocmd("CursorMoved", {
   group = "MarpDevPreview",
   pattern = "*.md",
   callback = function()
-    if H.config.live_sync then
+    if M.is_live_sync_on() then
       M.goto_current_slide()
     end
   end
