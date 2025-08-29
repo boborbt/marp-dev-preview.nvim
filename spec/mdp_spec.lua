@@ -79,8 +79,8 @@ function setup_md_file()
     vim.cmd("edit test.md")
 end
 
-describe('config', function()
-  it('respects setup settings', function()
+describe('config functions', function()
+  it('setup can be correctly accessed', function()
     mdp.setup({
       auto_save = true,
       auto_save_debounce = 9999,
@@ -94,8 +94,17 @@ describe('config', function()
     assert.is.True(mdp.config.get('auto_sync'))
     eq(9898, mdp.config.get('port'))
     eq(42, mdp.config.get('time_out'))
-
   end)
+
+  it('get returns nil for non-existing keys', function()
+    assert.is.Nil(mdp.config.get('non_existing_key'))
+  end)
+
+  it('get returns the value set via set', function()
+    mdp.config.set('auto_save', 'bullshit value')
+    eq('bullshit value', mdp.config.get('auto_save'))
+  end)
+
 end)
 
 describe('is_marp', function()
