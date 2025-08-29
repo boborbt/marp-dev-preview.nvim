@@ -88,7 +88,7 @@ M._goto_slide = function(slide_number)
     if ok and response.status == 200 then
       vim.notify("Went to slide " .. slide_number, vim.log.levels.DEBUG)
     else
-      vim.notify("Failed to go to slide: " .. response, vim.log.levels.ERROR)
+      vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
     end
   end
 end
@@ -102,6 +102,8 @@ M.goto_slide = function()
   if slide_number then
     M._goto_slide(slide_number)
     H.config.live_sync = false
+  else
+    vim.notify(input .. " is not a valid number", vim.log.levels.DEBUG)
   end
 end
 
