@@ -1,12 +1,6 @@
 -- TODO:
--- to be handled correctly the auto_save option:
---  - if it is on, then for every new marp file opened, call toggle_auto_save to turn
---    the timer on. mmm... there can be at most one file opened (the server is listening
---    on the fixed port configured here)
---    - should have been fixed... the plugin will monitor file changes and, if auto_save
---      is true will start the autosaving on markdown files.
---  - if it is off, leave to the user turning it on
--- [longterm] Start the server from within Neovim if not running
+-- [long term] Start the server from within Neovim if not running
+
 
 local M = {}
 local H = {
@@ -14,21 +8,22 @@ local H = {
     -- marp-dev-preview server port
     port = 8080,
     -- marp-dev-preview server connection_timeout
-    timeout=1000,
+    timeout = 1000,
 
     live_sync = false,
     auto_save = false,
-    --- autosave every second if file
+
+    --- Auto save every second if file
     --- has been changed
     auto_save_debounce = 1000
   },
 
-  -- we need to activate timers bufferwise,
+  -- We need to activate timers buffer-wise,
   -- otherwise we may start it on one buffer
   -- and start saving on another one
   timers = {},
 
-  -- same thing with live_sync, here it
+  -- Same thing with live_sync, here it
   -- simpler because we don't have timers
   live_buffers = {}
 }
@@ -44,12 +39,11 @@ M.config = {
 }
 
 M.setup = function(config)
-
   if not config then
     config = {}
   end
 
-  -- updates default_config with user options
+  -- Updates default_config with user options
   for k, v in pairs(config) do H.config[k] = v end
 end
 
@@ -79,11 +73,11 @@ M.current_slide_number = function()
 end
 
 M.server_cmd = function(cmd, arg)
-  vim.notify("connecting to port "..H.config.port)
+  vim.notify("connecting to port " .. H.config.port)
 
   local curl = require("plenary.curl")
   local call_curl = function()
-    return curl.post("http://localhost:"..H.config.port.."/api/command", {
+    return curl.post("http://localhost:" .. H.config.port .. "/api/command", {
       body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
       headers = { ["Content-Type"] = "application/json" },
       timeout = H.config.timeout,
@@ -110,7 +104,7 @@ M.goto_slide = function()
   local input = vim.fn.input("Slide number: ")
   local slide_number = tonumber(input)
 
-  -- this is a little repetitive, but avoids turnig off setting live sync
+  -- This is a little repetitive, but avoids turnig off setting live sync
   -- if the slide_number is not valid
   if slide_number then
     M._goto_slide(slide_number)
@@ -176,7 +170,7 @@ end
 
 M.auto_save_is_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
-  if H.timers[bufnr] == nil then  -- the timer was not running
+  if H.timers[bufnr] == nil then -- the timer was not running
     return false
   else
     return true
@@ -208,15 +202,15 @@ M.toggle_auto_save = function()
     -- start auto_save
     H.timers[bufnr] = vim.loop.new_timer()
 
-    vim.notify("Started auto-save on buffer: "..bufnr, vim.log.levels.INFO)
+    vim.notify("Started auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
     H.timers[bufnr]:start(H.config.auto_save_debounce, H.config.auto_save_debounce, vim.schedule_wrap(function()
       if vim.bo.modified then
-        vim.cmd("update")  -- save if modified and markdown
+        vim.cmd("update") -- save if modified and markdown
       end
     end))
   else
     -- stop auto_save
-    vim.notify("Stopping auto-save on buffer: "..bufnr, vim.log.levels.INFO)
+    vim.notify("Stopping auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
 
     M._clear_timer(bufnr)
   end
@@ -224,7 +218,7 @@ end
 
 vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
 
-vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   group = "MarpDevPreview",
   pattern = "*.md",
   callback = function()
@@ -236,7 +230,7 @@ vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
   end
 })
 
-vim.api.nvim_create_autocmd({"BufUnload", "BufWipeout"}, {
+vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
   group = "MarpDevPreview",
   pattern = "*.md",
   callback = function(args)
