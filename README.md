@@ -4,10 +4,10 @@ Seamlessly integrate [Marp Dev Preview](https://github.com/boborbt/marp-dev-prev
 
 ## Features
 
-- **Auto Sync Slides** – Keep your Markdown slide position synced with the preview.  (*One-way sync: browser → NeoVim not supported.*)  
+- **Auto Sync Slides** – Keep your Markdown slide position synced with the preview.  (*One-way sync: browser → NeoVim not supported.*)
 - **Auto Save Slides** - Automatically save the marp file every 1000ms (configurable)
-- **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.  
-- **Find String** – Search text in the preview. Temporarily disables auto-sync.  
+- **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.
+- **Find String** – Search text in the preview. Temporarily disables auto-sync.
 
 ---
 
@@ -47,11 +47,29 @@ require('marp-dev-preview').find()
 
 ## Configuration
 
-Currently the only option you can set is `auto_sync` which starts as false by default.
+You can customize the plugin by passing options to the `setup` function. Here are the available options and their default values:
+
+ Option              | Type    | Default | Description
+---------------------|---------|---------|-----------------------------------------------------------------------------------------------
+ `live_sync`         | boolean | `false` | If true automatically enables live_sync for a newly opened marp file.
+ `auto_save`         | boolean | `false` | If true automatically  ebables auto_save for a newly opened marp file.
+ `auto_save_interval`| number  | `1000`  | Time in milliseconds between auto-saving.
+ `timeout`           | number  | `5000`  | Timeout in milliseconds for connecting to the [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server.
+ `port`              | number  | `8080`  | Port number where the [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server is running.
+
+
+
+Defaults:
 
 ```lua
 require('marp-dev-preview').setup({
-  auto_sync = true, -- boolean: enable/disable auto-sync (default: true)
+  live_sync = false,
+  auto_save = false,
+  auto_save_interval = 1000,
+
+  -- Marp Dev Preview server options
+  timeout = 5000,
+  port = 8080
 })
 ```
 
