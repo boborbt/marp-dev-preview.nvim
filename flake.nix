@@ -17,7 +17,24 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        neovim = pkgs.neovim;
+        marp-dev-preview-nvim = pkgs.vimUtils.buildVimPlugin {
+          pname = "marp-dev-preview.nvim";
+          version = "scm";
+          src = ./.;
+        };
+
+        neovim = pkgs.neovim.override {
+          configure = {
+            packages.myPlugins = with pkgs.vimPlugins; {
+              start = [
+                plenary-nvim
+              ];
+            };
+            customRC = ''
+              set rtp+=.
+            '';
+          };
+        };
       in
       {
         devShells.default = pkgs.mkShell {
@@ -30,10 +47,11 @@
 
           shellHook = ''
             export XDG_CONFIG_HOME=$(pwd)/.config
-	    export PATH=$PATH:$HOME/.luarocks/bin
             echo "Nix dev shell configured to use local nvim config"
           '';
         };
+
+        packages.marp-dev-preview-nvim = marp-dev-preview-nvim;
       }
     );
 }
