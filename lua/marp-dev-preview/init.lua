@@ -15,7 +15,7 @@ local H = {
 
     --- Auto save every second if file
     --- has been changed
-    auto_save_debounce = 1000
+    auto_save_interval = 1000
   },
 
   -- We need to activate timers buffer-wise,
@@ -203,7 +203,7 @@ M.toggle_auto_save = function()
     H.timers[bufnr] = vim.loop.new_timer()
 
     vim.notify("Started auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
-    H.timers[bufnr]:start(H.config.auto_save_debounce, H.config.auto_save_debounce, vim.schedule_wrap(function()
+    H.timers[bufnr]:start(H.config.auto_save_interval, H.config.auto_save_interval, vim.schedule_wrap(function()
       if vim.bo.modified then
         vim.cmd("update") -- save if modified and markdown
       end
