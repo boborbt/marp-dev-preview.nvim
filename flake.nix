@@ -28,10 +28,15 @@
             packages.myPlugins = with pkgs.vimPlugins; {
               start = [
                 plenary-nvim
+                nvim-notify
               ];
             };
             customRC = ''
               set rtp+=.
+              lua << EOF
+              require('marp-dev-preview').setup({ auto_save=true, live_sync=true })
+              EOF
+              filetype on
             '';
           };
         };

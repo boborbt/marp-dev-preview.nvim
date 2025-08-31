@@ -1,8 +1,9 @@
 -- TODO:
 -- [long term] Start the server from within Neovim if not running
 
-
 local M = {}
+
+
 local H = {
   config = {
     -- marp-dev-preview server port
@@ -25,7 +26,10 @@ local H = {
 
   -- Same thing with live_sync, here it
   -- simpler because we don't have timers
-  live_buffers = {}
+  live_buffers = {},
+
+  -- Cache for is_marp results
+  buftypes = {}
 }
 
 M.config = {
@@ -37,6 +41,17 @@ M.config = {
     return H.config[opt]
   end
 }
+
+-- exposed for testing
+M._get_timers = function()
+  return H.timers
+end
+
+-- exposed for testing
+M._get_live_buffers = function()
+  return H.live_buffers
+end
+
 
 M.setup = function(config)
   if not config then
@@ -52,14 +67,25 @@ M.is_marp = function()
     return false
   end
 
-  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, 20, false)) do
+  local bufnr = vim.api.nvim_get_current_buf()
+  if H.buftypes[bufnr] ~= nil then
+    return H.buftypes[bufnr]
+  end
+
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 20, false)) do
     if line:match "^[ \t]*marp[ \t]*:[ \t]*true[ \t]*$" then
+      H.buftypes[bufnr] = true
       return true
     end
   end
 
+
+  H.buftypes[bufnr] = false
+
   return false
 end
+
+
 
 M.current_slide_number = function()
   local slide_number = -1
@@ -73,8 +99,6 @@ M.current_slide_number = function()
 end
 
 M.server_cmd = function(cmd, arg)
-  vim.notify("connecting to port " .. H.config.port)
-
   local curl = require("plenary.curl")
   local call_curl = function()
     return curl.post("http://localhost:" .. H.config.port .. "/api/command", {
@@ -92,9 +116,7 @@ end
 M._goto_slide = function(slide_number)
   if slide_number then
     local ok, response = M.server_cmd("goto", { key = "slide", value = slide_number })
-    if ok and response.status == 200 then
-      vim.notify("Went to slide " .. slide_number, vim.log.levels.DEBUG)
-    else
+    if not ok or response.status ~= 200 then
       vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
     end
   end
@@ -110,7 +132,7 @@ M.goto_slide = function()
     M._goto_slide(slide_number)
     M.set_live_sync(false)
   else
-    vim.notify(input .. " is not a valid number", vim.log.levels.DEBUG)
+    vim.notify(input .. " is not a valid number", vim.log.levels.INFO)
   end
 end
 
@@ -129,7 +151,6 @@ M.find = function()
   if input ~= "" then
     local ok, response = M.server_cmd("find", { key = "string", value = input })
     if ok and response.status == 200 then
-      vim.notify("Searched for '" .. input .. "'", vim.log.levels.INFO)
       M.set_live_sync(false)
     else
       vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
@@ -140,22 +161,16 @@ end
 M.set_live_sync = function(val)
   if val and not M.is_marp() then
     vim.notify("Refusing to start live sync on non-marp file")
+    return
   end
 
-
   local bufnr = vim.api.nvim_get_current_buf()
-
   H.live_buffers[bufnr] = val
 end
 
 -- Toggle live sync for the current file. This does not activate/deactivate
 -- config.live_sync (which can be done calling M.config.set('live_sync', true/false)
 M.toggle_live_sync = function()
-  if not M.is_marp() then
-    vim.notify("Refusing to start live sync on non-marp file")
-  end
-
-
   M.set_live_sync(not M.is_live_sync_on())
 
   if M.is_live_sync_on() then
@@ -165,10 +180,15 @@ end
 
 M.is_live_sync_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
-  return H.live_buffers[bufnr]
+  local status = H.live_buffers[bufnr]
+  if status then
+    return true
+  else
+    return false
+  end
 end
 
-M.auto_save_is_on = function()
+M.is_auto_save_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
   if H.timers[bufnr] == nil then -- the timer was not running
     return false
@@ -177,28 +197,27 @@ M.auto_save_is_on = function()
   end
 end
 
-M._get_timers = function()
-  return H.timers
-end
-
 M._clear_timer = function(bufnr)
   H.timers[bufnr]:stop()
   H.timers[bufnr]:close()
   H.timers[bufnr] = nil
 end
 
--- Toggle auto save for the current file. This does not activate/deactivate
--- config.auto_save (which can be done by calling M.config.set('auto_save', true/false)
-M.toggle_auto_save = function()
+M.set_auto_save = function(val)
+  if val == M.is_auto_save_on() then
+    -- nothing to do
+    return
+  end
+
   -- bail out if the file type is not markdown
-  if not M.is_marp() then
+  if val and not M.is_marp() then
     vim.notify("MDP: refusing to start auto_save on non marp files")
     return
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
 
-  if not M.auto_save_is_on() then
+  if val then
     -- start auto_save
     H.timers[bufnr] = vim.loop.new_timer()
 
@@ -216,16 +235,30 @@ M.toggle_auto_save = function()
   end
 end
 
+-- Toggle auto save for the current file. This does not activate/deactivate
+-- config.auto_save (which can be done by calling M.config.set('auto_save', true/false)
+M.toggle_auto_save = function()
+  M.set_auto_save(not M.is_auto_save_on())
+end
+
+-- ------------------------------------
+-- Autocommands
+-- ------------------------------------
+
 vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
 
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+vim.api.nvim_create_autocmd({ "FileType" }, {
   group = "MarpDevPreview",
-  pattern = "*.md",
-  callback = function()
-    if H.config.auto_save then
-      M.toggle_auto_save()
+  pattern = "markdown",
+  callback = function(args)
+    if not M.is_marp() then
+      -- set_auto_save and set_live_sync will refuse to start
+      -- and notify the user, no need to notify the user on
+      -- autoloading. Simply bail out.
+      return
     end
 
+    M.set_auto_save(H.config.auto_save)
     M.set_live_sync(H.config.live_sync)
   end
 })
@@ -234,6 +267,8 @@ vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
   group = "MarpDevPreview",
   pattern = "*.md",
   callback = function(args)
+    -- cannot use set_auto_save(false) because bufnr will
+    -- not be retrievable after the buffer is unloaded
     if H.timers[args.buf] then
       M._clear_timer(args.buf)
     end

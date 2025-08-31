@@ -2,3 +2,4 @@
 /lua_modules
 /.luarocks
 .config
+.DS_Store
