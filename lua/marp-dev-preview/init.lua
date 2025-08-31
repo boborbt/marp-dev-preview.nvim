@@ -3,63 +3,34 @@
 
 local M = {}
 
-
-local H = {
-  config = {
-    -- marp-dev-preview server port
-    port = 8080,
-    -- marp-dev-preview server connection_timeout
-    timeout = 1000,
-
-    live_sync = false,
-    auto_save = false,
-
-    --- Auto save every second if file
-    --- has been changed
-    auto_save_interval = 1000
-  },
-
-  -- We need to activate timers buffer-wise,
-  -- otherwise we may start it on one buffer
-  -- and start saving on another one
-  timers = {},
-
-  -- Same thing with live_sync, here it
-  -- simpler because we don't have timers
-  live_buffers = {},
-
-  -- Cache for is_marp results
-  buftypes = {}
-}
+local config = require("marp-dev-preview.config")
+local state = require("marp-dev-preview.state")
+local server = require("marp-dev-preview.server")
+local autocommands = require("marp-dev-preview.autocommands")
 
 M.config = {
   set = function(opt, val)
-    H.config[opt] = val
+    config.options[opt] = val
   end,
 
   get = function(opt)
-    return H.config[opt]
+    return config.options[opt]
   end
 }
 
 -- exposed for testing
 M._get_timers = function()
-  return H.timers
+  return state.timers
 end
 
 -- exposed for testing
 M._get_live_buffers = function()
-  return H.live_buffers
+  return state.live_buffers
 end
 
-
-M.setup = function(config)
-  if not config then
-    config = {}
-  end
-
-  -- Updates default_config with user options
-  for k, v in pairs(config) do H.config[k] = v end
+M.setup = function(user_config)
+  config.setup(user_config)
+  autocommands.setup()
 end
 
 M.is_marp = function()
@@ -68,24 +39,21 @@ M.is_marp = function()
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
-  if H.buftypes[bufnr] ~= nil then
-    return H.buftypes[bufnr]
+  if state.buftypes[bufnr] ~= nil then
+    return state.buftypes[bufnr]
   end
 
   for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 20, false)) do
     if line:match "^[ \t]*marp[ \t]*:[ \t]*true[ \t]*$" then
-      H.buftypes[bufnr] = true
+      state.buftypes[bufnr] = true
       return true
     end
   end
 
-
-  H.buftypes[bufnr] = false
+  state.buftypes[bufnr] = false
 
   return false
 end
-
-
 
 M.current_slide_number = function()
   local slide_number = -1
@@ -98,27 +66,19 @@ M.current_slide_number = function()
   return slide_number
 end
 
-M.server_cmd = function(cmd, arg)
-  local curl = require("plenary.curl")
-  local call_curl = function()
-    return curl.post("http://localhost:" .. H.config.port .. "/api/command", {
-      body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
-      headers = { ["Content-Type"] = "application/json" },
-      timeout = H.config.timeout,
-    })
+M._goto_slide = function(slide_number)
+  if not slide_number then
+    return
   end
 
-  local ok, response = pcall(call_curl)
+  local ok, response = server.server_cmd("goto", { key = "slide", value = slide_number })
+  if not ok then
+    vim.notify("Failed to go to slide: " .. response, vim.log.levels.ERROR)
+    return
+  end
 
-  return ok, response
-end
-
-M._goto_slide = function(slide_number)
-  if slide_number then
-    local ok, response = M.server_cmd("goto", { key = "slide", value = slide_number })
-    if not ok or response.status ~= 200 then
-      vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
-    end
+  if response.status ~= 200 then
+    vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
   end
 end
 
@@ -126,8 +86,6 @@ M.goto_slide = function()
   local input = vim.fn.input("Slide number: ")
   local slide_number = tonumber(input)
 
-  -- This is a little repetitive, but avoids turnig off setting live sync
-  -- if the slide_number is not valid
   if slide_number then
     M._goto_slide(slide_number)
     M.set_live_sync(false)
@@ -148,13 +106,20 @@ end
 
 M.find = function()
   local input = vim.fn.input("Search string: ")
-  if input ~= "" then
-    local ok, response = M.server_cmd("find", { key = "string", value = input })
-    if ok and response.status == 200 then
-      M.set_live_sync(false)
-    else
-      vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
-    end
+  if input == "" then
+    return
+  end
+
+  local ok, response = server.server_cmd("find", { key = "string", value = input })
+  if not ok then
+    vim.notify("Failed to search: " .. response, vim.log.levels.ERROR)
+    return
+  end
+
+  if response.status == 200 then
+    M.set_live_sync(false)
+  else
+    vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
   end
 end
 
@@ -165,11 +130,9 @@ M.set_live_sync = function(val)
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
-  H.live_buffers[bufnr] = val
+  state.live_buffers[bufnr] = val
 end
 
--- Toggle live sync for the current file. This does not activate/deactivate
--- config.live_sync (which can be done calling M.config.set('live_sync', true/false)
 M.toggle_live_sync = function()
   M.set_live_sync(not M.is_live_sync_on())
 
@@ -180,109 +143,50 @@ end
 
 M.is_live_sync_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
-  local status = H.live_buffers[bufnr]
-  if status then
-    return true
-  else
-    return false
-  end
+  return state.live_buffers[bufnr] == true
 end
 
 M.is_auto_save_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
-  if H.timers[bufnr] == nil then -- the timer was not running
-    return false
-  else
-    return true
-  end
+  return state.timers[bufnr] ~= nil
 end
 
 M._clear_timer = function(bufnr)
-  H.timers[bufnr]:stop()
-  H.timers[bufnr]:close()
-  H.timers[bufnr] = nil
+  state.timers[bufnr]:stop()
+  state.timers[bufnr]:close()
+  state.timers[bufnr] = nil
 end
 
 M.set_auto_save = function(val)
   if val == M.is_auto_save_on() then
-    -- nothing to do
     return
   end
 
-  -- bail out if the file type is not markdown
   if val and not M.is_marp() then
-    vim.notify("MDP: refusing to start auto_save on non marp files")
+    vim.notify("Refusing to start auto_save on non marp files")
     return
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
 
   if val then
-    -- start auto_save
-    H.timers[bufnr] = vim.loop.new_timer()
+    state.timers[bufnr] = vim.loop.new_timer()
 
     vim.notify("Started auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
-    H.timers[bufnr]:start(H.config.auto_save_interval, H.config.auto_save_interval, vim.schedule_wrap(function()
-      if vim.bo.modified then
-        vim.cmd("update") -- save if modified and markdown
-      end
-    end))
+    state.timers[bufnr]:start(config.options.auto_save_interval, config.options.auto_save_interval,
+      vim.schedule_wrap(function()
+        if vim.bo.modified then
+          vim.cmd("update")
+        end
+      end))
   else
-    -- stop auto_save
     vim.notify("Stopping auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
-
     M._clear_timer(bufnr)
   end
 end
 
--- Toggle auto save for the current file. This does not activate/deactivate
--- config.auto_save (which can be done by calling M.config.set('auto_save', true/false)
 M.toggle_auto_save = function()
   M.set_auto_save(not M.is_auto_save_on())
 end
-
--- ------------------------------------
--- Autocommands
--- ------------------------------------
-
-vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-  group = "MarpDevPreview",
-  pattern = "markdown",
-  callback = function(args)
-    if not M.is_marp() then
-      -- set_auto_save and set_live_sync will refuse to start
-      -- and notify the user, no need to notify the user on
-      -- autoloading. Simply bail out.
-      return
-    end
-
-    M.set_auto_save(H.config.auto_save)
-    M.set_live_sync(H.config.live_sync)
-  end
-})
-
-vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
-  group = "MarpDevPreview",
-  pattern = "*.md",
-  callback = function(args)
-    -- cannot use set_auto_save(false) because bufnr will
-    -- not be retrievable after the buffer is unloaded
-    if H.timers[args.buf] then
-      M._clear_timer(args.buf)
-    end
-  end
-})
-
-vim.api.nvim_create_autocmd("CursorMoved", {
-  group = "MarpDevPreview",
-  pattern = "*.md",
-  callback = function()
-    if M.is_live_sync_on() then
-      M.goto_current_slide()
-    end
-  end
-})
 
 return M

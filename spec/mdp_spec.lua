@@ -1,4 +1,5 @@
 local mdp = require('marp-dev-preview')
+local server = require('marp-dev-preview.server')
 local eq = assert.are.same
 
 describe('marp-dev-previoew methods:', function()
@@ -27,7 +28,8 @@ describe('marp-dev-previoew methods:', function()
   }
 
   before_each(function()
-    mdp.server_cmd = function(cmd, args)
+    _G.sc.orig = server.server_cmd
+    server.server_cmd = function(cmd, args)
       _G.sc.cmd = cmd
       _G.sc.args = args
       return _G.sc.ok, _G.sc.response
@@ -47,6 +49,7 @@ describe('marp-dev-previoew methods:', function()
   end)
 
   after_each(function()
+    server.server_cmd = _G.sc.orig
     _G.sc.cmd = nil
     _G.sc.args = nil
     _G.sc.ok = true
@@ -261,7 +264,7 @@ describe('marp-dev-previoew methods:', function()
 
     it('notifies the user in case of server error', function()
       _G.sc.ok = false
-      _G.sc.response = { body = "error body" }
+      _G.sc.response = "error body"
 
       _G.input.usr_input = "10"
 
@@ -295,7 +298,7 @@ describe('marp-dev-previoew methods:', function()
 
     it('notifies the user in case of server error', function()
       _G.sc.ok = false
-      _G.sc.response = { body = "error body" }
+      _G.sc.response = "error body"
       _G.input.usr_input = "search term"
 
       mdp.find()
