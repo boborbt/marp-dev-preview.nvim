@@ -17,4 +17,17 @@ function M.server_cmd(cmd, arg)
   return ok, response
 end
 
+function M.refresh(markdown)
+  local curl = require("plenary.curl")
+  local call_curl = function()
+    return curl.post("http://localhost:" .. config.options.port .. "/api/reload", {
+      body = markdown,
+      headers = { ["Content-Type"] = "text/markdown" },
+      timeout = config.options.timeout,
+    })
+  end
+
+  return pcall(call_curl)
+end
+
 return M

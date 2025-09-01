@@ -158,6 +158,11 @@ M._clear_timer = function(bufnr)
 end
 
 M.set_auto_save = function(val)
+  -- FIXME: this is a hack to temporarily disable auto-save
+  if true then
+    return
+  end
+
   if val == M.is_auto_save_on() then
     return
   end
@@ -176,7 +181,17 @@ M.set_auto_save = function(val)
     state.timers[bufnr]:start(config.options.auto_save_interval, config.options.auto_save_interval,
       vim.schedule_wrap(function()
         if vim.bo.modified then
-          vim.cmd("update")
+          -- vim.cmd("update")
+          vim.notify("Auto-saving buffer: " .. bufnr, vim.log.levels.INFO)
+
+          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+          local text = table.concat(lines, "\n")
+          ok, response = server.refresh(text)
+
+          if not ok then
+            vim.notify("Failed to auto-save: " .. response, vim.log.levels.ERROR)
+            return
+          end
         end
       end))
   else
