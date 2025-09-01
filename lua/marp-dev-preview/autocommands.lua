@@ -13,26 +13,13 @@ function M.setup()
     pattern = "markdown",
     callback = function(args)
       if not marp.is_marp() then
-        -- set_auto_save and set_live_sync will refuse to start
+        -- set_live_sync will refuse to start
         -- and notify the user, no need to notify the user on
         -- autoloading. Simply bail out.
         return
       end
 
-      marp.set_auto_save(config.options.auto_save)
       marp.set_live_sync(config.options.live_sync)
-    end
-  })
-
-  vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
-    group = "MarpDevPreview",
-    pattern = "*.md",
-    callback = function(args)
-      -- cannot use set_auto_save(false) because bufnr will
-      -- not be retrievable after the buffer is unloaded
-      if state.timers[args.buf] then
-        marp._clear_timer(args.buf)
-      end
     end
   })
 
@@ -41,7 +28,12 @@ function M.setup()
     pattern = "*.md",
     callback = function()
       if marp.is_live_sync_on() then
-        marp.goto_current_slide()
+        ok, _ = marp.goto_current_slide()
+        if not ok then
+          vim.notify("Failed to sync current slide ", vim.log.levels.ERROR)
+          marp.set_live_sync(false)
+          return
+        end
       end
     end
   })
@@ -50,6 +42,10 @@ function M.setup()
     group = "MarpDevPreview",
     pattern = "*.md",
     callback = function()
+      if not marp.is_live_sync_on() then
+        return
+      end
+
       local bufnr = vim.api.nvim_get_current_buf()
       vim.notify("Refreshing buffer: " .. bufnr, vim.log.levels.INFO)
 
@@ -58,7 +54,7 @@ function M.setup()
       local ok, response = server.refresh(text)
 
       if not ok then
-        vim.notify("Failed to refresh: " .. response, vim.log.levels.ERROR)
+        marp.set_live_sync(false)
         return
       end
     end

@@ -92,27 +92,23 @@ describe('marp-dev-previoew methods:', function()
   describe('config functions', function()
     it('setup can be correctly accessed', function()
       mdp.setup({
-        auto_save = true,
-        auto_save_debounce = 9999,
         auto_sync = true,
         port = 9898,
         time_out = 42
       })
 
-      assert.is.True(mdp.config.get('auto_save'))
-      eq(9999, mdp.config.get('auto_save_debounce'))
-      assert.is.True(mdp.config.get('auto_sync'))
-      eq(9898, mdp.config.get('port'))
-      eq(42, mdp.config.get('time_out'))
+      assert.is.True(mdp.get('auto_sync'))
+      eq(9898, mdp.get('port'))
+      eq(42, mdp.get('time_out'))
     end)
 
     it('get returns nil for non-existing keys', function()
-      assert.is.Nil(mdp.config.get('non_existing_key'))
+      assert.is.Nil(mdp.get('non_existing_key'))
     end)
 
     it('get returns the value set via set', function()
-      mdp.config.set('auto_save', 'bullshit value')
-      eq('bullshit value', mdp.config.get('auto_save'))
+      mdp.set('auto_sync', 'bullshit value')
+      eq('bullshit value', mdp.get('auto_sync'))
     end)
   end)
 
@@ -262,19 +258,6 @@ describe('marp-dev-previoew methods:', function()
       eq({ key = "slide", value = 10 }, _G.sc.args)
     end)
 
-    it('notifies the user in case of server error', function()
-      _G.sc.ok = false
-      _G.sc.response = "error body"
-
-      _G.input.usr_input = "10"
-
-      mdp.goto_slide()
-
-      eq("goto", _G.sc.cmd)
-      eq({ key = "slide", value = 10 }, _G.sc.args)
-      eq("Failed to go to slide: error body", _G.notify.str)
-    end)
-
     it('does not call the server and notifies the user in case the inserted slide number is not a number', function()
       _G.input.usr_input = "xx"
 
@@ -401,91 +384,6 @@ describe('marp-dev-previoew methods:', function()
 
       mdp._goto_slide = original_goto_slide
       mdp.current_slide_number = original_current_slide_number
-    end)
-  end)
-
-  describe('auto_save option:', function()
-    it('clear timers on closing buffers', function()
-      -- setup
-      mdp.setup({ auto_save = true })
-
-      setup_marp_file()
-
-      assert.is.True(mdp.is_auto_save_on())
-
-      local cur_buf = vim.api.nvim_get_current_buf()
-
-      vim.api.nvim_buf_delete(cur_buf, { force = true })
-
-      local timers = mdp._get_timers()
-      assert.is.Nil(timers[cur_buf])
-    end)
-
-
-
-    it('if on causes autosaving on marp files', function()
-      -- setup
-      mdp.setup({ auto_save = true })
-
-      setup_marp_file()
-
-      assert.is.True(mdp.is_auto_save_on())
-    end)
-
-    it('if on does not cause autosaving on non-marp files', function()
-      -- setup
-      mdp.setup({ auto_save = true })
-
-      setup_md_file()
-
-      assert.is.False(mdp.is_auto_save_on())
-    end)
-
-    it('if off makes autosave not automatic', function()
-      -- setup
-      mdp.setup({ auto_save = false })
-
-      setup_marp_file()
-
-      assert.is.False(mdp.is_auto_save_on())
-    end)
-  end)
-
-  describe('toggle_auto_save', function()
-    it('does not toggle auto_save if the file is not a marp file', function()
-      mdp.setup({ auto_save = false })
-
-      setup_md_file()
-
-      assert.is.False(mdp.is_auto_save_on())
-
-      mdp.toggle_auto_save()
-
-      assert.is.False(mdp.is_auto_save_on())
-    end)
-
-    it('toggles auto_save on for a marp file', function()
-      mdp.setup({ auto_save = false })
-
-      setup_marp_file()
-
-      assert.is.False(mdp.is_auto_save_on())
-
-      mdp.toggle_auto_save()
-
-      assert.is.True(mdp.is_auto_save_on())
-    end)
-
-    it('toggles auto_save off for a marp file', function()
-      mdp.setup({ auto_save = true })
-
-      setup_marp_file()
-
-      assert.is.True(mdp.is_auto_save_on())
-
-      mdp.toggle_auto_save()
-
-      assert.is.False(mdp.is_auto_save_on())
     end)
   end)
 end)

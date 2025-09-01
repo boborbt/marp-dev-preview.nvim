@@ -8,19 +8,12 @@ local state = require("marp-dev-preview.state")
 local server = require("marp-dev-preview.server")
 local autocommands = require("marp-dev-preview.autocommands")
 
-M.config = {
-  set = function(opt, val)
-    config.options[opt] = val
-  end,
+M.get = function(opt)
+  return config.options[opt]
+end
 
-  get = function(opt)
-    return config.options[opt]
-  end
-}
-
--- exposed for testing
-M._get_timers = function()
-  return state.timers
+M.set = function(opt, value)
+  config.options[opt] = value
 end
 
 -- exposed for testing
@@ -68,18 +61,10 @@ end
 
 M._goto_slide = function(slide_number)
   if not slide_number then
-    return
+    return true, nil
   end
 
-  local ok, response = server.server_cmd("goto", { key = "slide", value = slide_number })
-  if not ok then
-    vim.notify("Failed to go to slide: " .. response, vim.log.levels.ERROR)
-    return
-  end
-
-  if response.status ~= 200 then
-    vim.notify("Failed to go to slide: " .. response.body, vim.log.levels.ERROR)
-  end
+  return server.server_cmd("goto", { key = "slide", value = slide_number })
 end
 
 M.goto_slide = function()
@@ -98,10 +83,12 @@ M._last_slide_number = nil
 
 M.goto_current_slide = function()
   local slide_number = M.current_slide_number()
-  if slide_number ~= M._last_slide_number then
-    M._last_slide_number = slide_number
-    M._goto_slide(slide_number)
+  if slide_number == M._last_slide_number then
+    return true, nil
   end
+
+  M._last_slide_number = slide_number
+  return M._goto_slide(slide_number)
 end
 
 M.find = function()
@@ -144,64 +131,6 @@ end
 M.is_live_sync_on = function()
   local bufnr = vim.api.nvim_get_current_buf()
   return state.live_buffers[bufnr] == true
-end
-
-M.is_auto_save_on = function()
-  local bufnr = vim.api.nvim_get_current_buf()
-  return state.timers[bufnr] ~= nil
-end
-
-M._clear_timer = function(bufnr)
-  state.timers[bufnr]:stop()
-  state.timers[bufnr]:close()
-  state.timers[bufnr] = nil
-end
-
-M.set_auto_save = function(val)
-  -- FIXME: this is a hack to temporarily disable auto-save
-  if true then
-    return
-  end
-
-  if val == M.is_auto_save_on() then
-    return
-  end
-
-  if val and not M.is_marp() then
-    vim.notify("Refusing to start auto_save on non marp files")
-    return
-  end
-
-  local bufnr = vim.api.nvim_get_current_buf()
-
-  if val then
-    state.timers[bufnr] = vim.loop.new_timer()
-
-    vim.notify("Started auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
-    state.timers[bufnr]:start(config.options.auto_save_interval, config.options.auto_save_interval,
-      vim.schedule_wrap(function()
-        if vim.bo.modified then
-          -- vim.cmd("update")
-          vim.notify("Auto-saving buffer: " .. bufnr, vim.log.levels.INFO)
-
-          local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-          local text = table.concat(lines, "\n")
-          ok, response = server.refresh(text)
-
-          if not ok then
-            vim.notify("Failed to auto-save: " .. response, vim.log.levels.ERROR)
-            return
-          end
-        end
-      end))
-  else
-    vim.notify("Stopping auto-save on buffer: " .. bufnr, vim.log.levels.INFO)
-    M._clear_timer(bufnr)
-  end
-end
-
-M.toggle_auto_save = function()
-  M.set_auto_save(not M.is_auto_save_on())
 end
 
 return M

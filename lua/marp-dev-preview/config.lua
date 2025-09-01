@@ -7,11 +7,6 @@ M.options = {
   timeout = 1000,
 
   live_sync = false,
-  auto_save = false,
-
-  --- Auto save every second if file
-  --- has been changed
-  auto_save_interval = 1000
 }
 
 M.setup = function(config)
