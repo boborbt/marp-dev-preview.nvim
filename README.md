@@ -25,6 +25,31 @@ use {
   end
 }
 ```
+The plugin **does not** start the Marp Dev Preview server for you. Please follow the instructions in the [Marp Dev Preview repository](github.com/boborbt/marp-dev-preview) to set it up.
+
+In brief, the easiest way is to use npx:
+
+```bash
+  npx marp-dev-preview --theme-dir <path-to-your-marp-themes> <path-to-your-markdown-file>
+```
+
+Then just open your browser at "localhost:8080" and the same markdown file in NeoVim. If you have `live_sync` enabled in the plugin config, the preview will automatically start syncing as you edit the file. Otherwise, you can manually toggle live sync with:
+
+```vim
+:MarpDevPreviewToggleLiveSync
+```
+Other commands you might find useful:
+
+```vim
+:MarpDevPreviewGoto
+:MarpDevPreviewFind
+```
+
+- MarpDevPreviewGoto allows you to jump to a specific slide.
+- MarpDevPreviewFind allows you to search for a string in the preview (it will find the first occurrence).
+
+**Note**: MarpDevPreviewGoto and MarpDevPreviewFind will temporarily disable live sync until you toggle it back on.
+
 
 **Suggested Keybindings:**
 
