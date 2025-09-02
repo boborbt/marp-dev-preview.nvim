@@ -47,7 +47,7 @@ function M.setup()
       end
 
       local bufnr = vim.api.nvim_get_current_buf()
-      vim.notify("Refreshing buffer: " .. bufnr, vim.log.levels.INFO)
+      vim.notify("Refreshing buffer: " .. bufnr, vim.log.levels.DEBUG)
 
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local text = table.concat(lines, "\n")

@@ -75,7 +75,7 @@ M.goto_slide = function()
     M._goto_slide(slide_number)
     M.set_live_sync(false)
   else
-    vim.notify(input .. " is not a valid number", vim.log.levels.INFO)
+    vim.notify(input .. " is not a valid number", vim.log.levels.ERROR)
   end
 end
 
@@ -112,7 +112,7 @@ end
 
 M.set_live_sync = function(val)
   if val and not M.is_marp() then
-    vim.notify("Refusing to start live sync on non-marp file")
+    vim.notify("Refusing to start live sync on non-marp file", vim.log.levels.WARN)
     return
   end
 
