@@ -211,7 +211,7 @@ describe('marp-dev-previoew methods:', function()
       eq(0, mdp.current_slide_number())
     end)
 
-    it('returns the corret slide number when cursor is in the middel of the file', function()
+    it('returns the corret slide number when cursor is in the middle of the file', function()
       vim.cmd("enew")
       vim.cmd("set filetype=markdown")
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
@@ -250,12 +250,74 @@ describe('marp-dev-previoew methods:', function()
 
   describe('goto_slide', function()
     it('correctly invokes server goto function (success case)', function()
-      _G.input.usr_input = "10"
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "---",
+        "second slide",
+        "---",
+        "third slide"
+      })
+
+      _G.input.usr_input = "2"
 
       mdp.goto_slide()
 
       eq("goto", _G.sc.cmd)
-      eq({ key = "slide", value = 10 }, _G.sc.args)
+      eq({ key = "slide", value = 2 }, _G.sc.args)
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it(
+    'does not call the server and notifies the user in case the inserted slide number is >= than the total number of slides',
+      function()
+        vim.cmd("enew")
+        vim.cmd("set filetype=markdown")
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+          "---",
+          "marp:true",
+          "---",
+          "first slide",
+          "---",
+          "second slide",
+          "---",
+          "third slide"
+        })
+
+        _G.input.usr_input = "4"
+
+        mdp.goto_slide()
+
+        assert.is.Nil(_G.sc.cmd)
+        assert.is.Nil(_G.sc.args)
+        eq("4 is not a valid slide number", _G.notify.str)
+      end)
+
+    it('does not call the server and notifies the user in case the inserted slide number is <=0', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "---",
+        "second slide",
+        "---",
+        "third slide"
+      })
+
+      _G.input.usr_input = "0"
+
+      mdp.goto_slide()
+
+      assert.is.Nil(_G.sc.cmd)
+      assert.is.Nil(_G.sc.args)
+      eq("0 is not a valid slide number", _G.notify.str)
     end)
 
     it('does not call the server and notifies the user in case the inserted slide number is not a number', function()
@@ -265,7 +327,7 @@ describe('marp-dev-previoew methods:', function()
 
       assert.is.Nil(_G.sc.cmd)
       assert.is.Nil(_G.sc.args)
-      eq("xx is not a valid number", _G.notify.str)
+      eq("xx is not a valid slide number", _G.notify.str)
     end)
   end)
 
