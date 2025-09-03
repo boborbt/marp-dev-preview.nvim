@@ -1,4 +1,5 @@
 local mdp = require('marp-dev-preview')
+local utils = require('marp-dev-preview.utils')
 local server = require('marp-dev-preview.server')
 local eq = assert.are.same
 
@@ -121,7 +122,7 @@ describe('marp-dev-previoew methods:', function()
         "world",
       })
 
-      assert.is.False(mdp.is_marp())
+      assert.is.False(utils.is_marp())
     end)
 
     it('returns false on markdown non-marp files', function()
@@ -134,7 +135,7 @@ describe('marp-dev-previoew methods:', function()
         "world",
       })
 
-      assert.is.False(mdp.is_marp())
+      assert.is.False(utils.is_marp())
     end)
 
     it('returns false on non-markdown marp files', function()
@@ -148,7 +149,7 @@ describe('marp-dev-previoew methods:', function()
         "---"
       })
 
-      assert.is.False(mdp.is_marp())
+      assert.is.False(utils.is_marp())
     end)
 
     it('returns true on marp with style code', function()
@@ -174,13 +175,21 @@ describe('marp-dev-previoew methods:', function()
 
 
       setup_marp_file(str)
-      assert.is.True(mdp.is_marp())
+      assert.is.True(utils.is_marp())
     end)
 
     it('returns true on markdown marp files', function()
       setup_marp_file()
 
-      assert.is.True(mdp.is_marp())
+      assert.is.True(utils.is_marp())
+    end)
+  end)
+
+  describe('num_slides', function()
+    it('returns the total number of slides', function()
+      setup_marp_file("---\nmarp: true\n---\nfirst slide\n---\nsecond slide\n---\nthird slide")
+      local n = utils.num_slides()
+      eq(3, n)
     end)
   end)
 
@@ -190,7 +199,7 @@ describe('marp-dev-previoew methods:', function()
       vim.cmd("enew")
       vim.cmd("set filetype=markdown")
 
-      eq(mdp.current_slide_number(), -1)
+      eq(utils.current_slide_number(), -1)
     end)
 
     it('returns 0 when cursor is before the first slide', function()
@@ -208,7 +217,7 @@ describe('marp-dev-previoew methods:', function()
       })
       vim.cmd("1")
 
-      eq(0, mdp.current_slide_number())
+      eq(0, utils.current_slide_number())
     end)
 
     it('returns the corret slide number when cursor is in the middle of the file', function()
@@ -226,7 +235,7 @@ describe('marp-dev-previoew methods:', function()
       })
       vim.cmd("6")
 
-      eq(2, mdp.current_slide_number())
+      eq(2, utils.current_slide_number())
     end)
 
     it('returns the number of last slide when cursor is at the end of the file', function()
@@ -244,12 +253,12 @@ describe('marp-dev-previoew methods:', function()
       })
       vim.cmd("8")
 
-      eq(3, mdp.current_slide_number())
+      eq(3, utils.current_slide_number())
     end)
   end)
 
   describe('goto_slide', function()
-    it('correctly invokes server goto function (success case)', function()
+    it('invokes server goto function (success case)', function()
       vim.cmd("enew")
       vim.cmd("set filetype=markdown")
       vim.api.nvim_buf_set_lines(0, 0, -1, false, {
@@ -272,8 +281,29 @@ describe('marp-dev-previoew methods:', function()
       eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
     end)
 
+    it('it reposition the cursor within the selected slide (success case)', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "---",
+        "second slide",
+        "---",
+        "third slide"
+      })
+
+      _G.input.usr_input = "2"
+
+      mdp.goto_slide()
+
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
     it(
-    'does not call the server and notifies the user in case the inserted slide number is >= than the total number of slides',
+      'does not call the server and notifies the user in case the inserted slide number is >= than the total number of slides',
       function()
         vim.cmd("enew")
         vim.cmd("set filetype=markdown")
@@ -407,6 +437,7 @@ describe('marp-dev-previoew methods:', function()
     end)
   end)
 
+
   describe('goto_current_slide', function()
     it('calls _goto_slide with the current slide number', function()
       local goto_slide_called_with = nil
@@ -415,8 +446,8 @@ describe('marp-dev-previoew methods:', function()
         goto_slide_called_with = slide_number
       end
 
-      local original_current_slide_number = mdp.current_slide_number
-      mdp.current_slide_number = function()
+      local original_current_slide_number = utils.current_slide_number
+      utils.current_slide_number = function()
         return 5
       end
 
@@ -425,7 +456,7 @@ describe('marp-dev-previoew methods:', function()
       eq(5, goto_slide_called_with)
 
       mdp._goto_slide = original_goto_slide
-      mdp.current_slide_number = original_current_slide_number
+      utils.current_slide_number = original_current_slide_number
     end)
 
     it('does not call _goto_slide if the slide number is the same as the last one', function()
@@ -435,8 +466,8 @@ describe('marp-dev-previoew methods:', function()
         goto_slide_called = true
       end
 
-      local original_current_slide_number = mdp.current_slide_number
-      mdp.current_slide_number = function()
+      local original_current_slide_number = utils.current_slide_number
+      utils.current_slide_number = function()
         return 5
       end
 
@@ -445,7 +476,7 @@ describe('marp-dev-previoew methods:', function()
       assert.is.False(goto_slide_called)
 
       mdp._goto_slide = original_goto_slide
-      mdp.current_slide_number = original_current_slide_number
+      utils.current_slide_number = original_current_slide_number
     end)
   end)
 end)

@@ -5,6 +5,7 @@ function M.setup()
   local config = require("marp-dev-preview.config")
   local state = require("marp-dev-preview.state")
   local server = require("marp-dev-preview.server")
+  local utils = require("marp-dev-preview.utils")
 
   vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
 
@@ -12,7 +13,7 @@ function M.setup()
     group = "MarpDevPreview",
     pattern = "markdown",
     callback = function(args)
-      if not marp.is_marp() then
+      if not utils.is_marp() then
         -- set_live_sync will refuse to start
         -- and notify the user, no need to notify the user on
         -- autoloading. Simply bail out.
