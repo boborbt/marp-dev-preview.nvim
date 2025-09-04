@@ -81,6 +81,18 @@ M.find = function()
   end
 end
 
+M.start_server = function()
+  server.start()
+end
+
+M.stop_server = function()
+  -- sotp all live synced live_buffers
+  for bufnr, _ in pairs(state.live_buffers) do
+    state.live_buffers[bufnr] = false
+  end
+  server.stop()
+end
+
 M.set_live_sync = function(val)
   if val and not utils.is_marp() then
     vim.notify("Refusing to start live sync on non-marp file", vim.log.levels.WARN)
