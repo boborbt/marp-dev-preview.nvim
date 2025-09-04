@@ -28,13 +28,15 @@ function M.setup()
     group = "MarpDevPreview",
     pattern = "*.md",
     callback = function()
-      if marp.is_live_sync_on() then
-        ok, _ = marp.goto_current_slide()
-        if not ok then
-          vim.notify("Failed to sync current slide ", vim.log.levels.ERROR)
-          marp.set_live_sync(false)
-          return
-        end
+      if not marp.is_live_sync_on() then
+        return
+      end
+
+      ok, _ = marp.goto_current_slide()
+      if not ok then
+        vim.notify("Failed to sync current slide ", vim.log.levels.ERROR)
+        marp.set_live_sync(false)
+        return
       end
     end
   })

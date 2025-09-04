@@ -1,20 +1,36 @@
 local M = {
-  server_job = nil
+  pid = nil
 }
 
 local config = require("marp-dev-preview.config")
 
 function M.is_running()
-  return M.server_job ~= nil
+  local chk = M.check_server(config.port)
+  vim.notify("Check server returned: " .. tostring(chk), vim.log.levels.INFO)
+  return chk == "200"
+end
+
+function M.check_server(port)
+  port = port or "8080"
+  local url = string.format("http://localhost:%s", port)
+
+  local result = vim.fn.system(string.format("curl -Is -o /dev/null -w '%%{http_code}' %s", url))
+  result = vim.trim(result)
+
+  if result == "" then
+    return nil
+  end
+
+  return result
 end
 
 function M.stop()
-  if not M.is_running() then
+  if M.server_job == nil then
     return
   end
+
   -- this should close all pipes
   M.server_job:shutdown(0, 3)
-
 
   -- and since the process won't die
   local _handle = io.popen("kill " .. M.server_job.pid)
@@ -32,6 +48,10 @@ function M.open_browser()
 end
 
 function M.start()
+  if M.is_running() then
+    vim.notify("Server is already running, bailing out", vim.log.levels.WARN)
+    return
+  end
   -- Uses npx to start the marp server
   local Job = require("plenary.job")
   local theme_dir = config.options.theme_dir

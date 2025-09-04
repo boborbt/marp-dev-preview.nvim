@@ -87,10 +87,14 @@ M.set_live_sync = function(val)
     return
   end
 
-  if val then
-    M.server.start()
+  vim.notify("Server is running: " .. tostring(server.is_running()), vim.log.levels.INFO)
+
+  if not server.is_running() then
+    vim.notify("Server not found at http://localhost:" .. (config.port or "8080") .. ". Live sync not enabled")
+    return
   end
 
+  vim.notify("Live sync " .. (val and "enabled" or "disabled"), vim.log.levels.INFO)
   local bufnr = vim.api.nvim_get_current_buf()
   state.live_buffers[bufnr] = val
 end
