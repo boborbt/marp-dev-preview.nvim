@@ -7,6 +7,8 @@ M.options = {
   timeout = 1000,
 
   live_sync = false,
+
+  theme_dir = nil
 }
 
 M.setup = function(config)

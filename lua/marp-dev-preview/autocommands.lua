@@ -60,6 +60,37 @@ function M.setup()
       end
     end
   })
+
+  vim.api.nvim_create_autocmd("BufWipeout", {
+    group = "MarpDevPreview",
+    pattern = "*.md",
+    callback = function(args)
+      local bufnr = args.buf
+      state.live_buffers[bufnr] = nil
+
+      local any_live = false
+      for _, v in pairs(state.live_buffers) do
+        if v then
+          any_live = true
+          break
+        end
+      end
+
+      if not any_live and server.is_running() then
+        server.stop()
+      end
+    end
+  })
+
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = "MarpDevPreview",
+    pattern = "*",
+    callback = function()
+      if server.is_running() then
+        server.stop()
+      end
+    end
+  })
 end
 
 return M

@@ -27,7 +27,7 @@ M.setup = function(user_config)
   autocommands.setup()
 end
 
-
+M.server = server
 
 M._goto_slide = function(slide_number)
   if not slide_number then
@@ -85,6 +85,10 @@ M.set_live_sync = function(val)
   if val and not utils.is_marp() then
     vim.notify("Refusing to start live sync on non-marp file", vim.log.levels.WARN)
     return
+  end
+
+  if val then
+    M.server.start()
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
