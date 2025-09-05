@@ -8,7 +8,7 @@ M.is_marp = function()
   end
 
   local bufnr = vim.api.nvim_get_current_buf()
-  if state.buftypes[bufnr] ~= nil then
+  if state.buftypes[bufnr] then
     return state.buftypes[bufnr]
   end
 
