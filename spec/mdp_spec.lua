@@ -3,7 +3,7 @@ local utils = require('marp-dev-preview.utils')
 local server = require('marp-dev-preview.server')
 local eq = assert.are.same
 
-describe('marp-dev-previoew methods:', function()
+describe('marp-dev-preview methods:', function()
   -- Mocking various objects. _G will contain the parameters and the
   -- return values of the mocked functions
   local _G = {
@@ -397,6 +397,7 @@ describe('marp-dev-previoew methods:', function()
     it('if on live_sync will be enabled on marp files', function()
       -- setup
       mdp.setup({ live_sync = true })
+      server.is_running = function() return true end
 
       setup_marp_file()
 

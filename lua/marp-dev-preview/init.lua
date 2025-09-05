@@ -95,14 +95,18 @@ end
 
 M.set_live_sync = function(val)
   if val and not utils.is_marp() then
-    vim.notify("Refusing to start live sync on non-marp file", vim.log.levels.WARN)
+    vim.notify("Refusing to start live sync on non-marp file",
+      vim.log.levels.WARN)
     return
   end
 
   vim.notify("Server is running: " .. tostring(server.is_running()), vim.log.levels.INFO)
 
-  if not server.is_running() then
-    vim.notify("Server not found at http://localhost:" .. (config.port or "8080") .. ". Live sync not enabled")
+  if val and not server.is_running() then
+    vim.notify("Server not found at http://localhost:"
+      .. (config.port or "8080")
+      .. ". Live sync not enabled",
+      vim.log.levels.WARN)
     return
   end
 
