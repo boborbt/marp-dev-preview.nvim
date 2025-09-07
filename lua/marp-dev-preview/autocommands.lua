@@ -68,18 +68,11 @@ function M.setup()
     pattern = "*.md",
     callback = function(args)
       local bufnr = args.buf
+      local filenae = vim.api.nvim_buf_get_name(bufnr)
       state.live_buffers[bufnr] = nil
 
-      local any_live = false
-      for _, v in pairs(state.live_buffers) do
-        if v then
-          any_live = true
-          break
-        end
-      end
-
       if not any_live and server.is_running() then
-        server.stop()
+        server.stop(filename)
       end
     end
   })
@@ -88,9 +81,7 @@ function M.setup()
     group = "MarpDevPreview",
     pattern = "*",
     callback = function()
-      if server.is_running() then
-        server.stop()
-      end
+      server.stop_all()
     end
   })
 end

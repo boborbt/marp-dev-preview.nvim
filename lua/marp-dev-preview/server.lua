@@ -1,11 +1,22 @@
 local M = {
-  pid = nil
+  server_jobs = {}
 }
 
 local config = require("marp-dev-preview.config")
 
 function M.is_running()
-  local chk = M.check_server(config.port)
+  local filename = vim.api.nvim_buf_get_name(0)
+  if filename == nil or filename == "" then
+    return false
+  end
+
+  local server_job = M.server_jobs[filename]
+
+  if not server_job then
+    return false
+  end
+
+  local chk = M.check_server(server_job.port)
   vim.notify("Check server returned: " .. tostring(chk), vim.log.levels.INFO)
   return chk == "200"
 end
@@ -24,27 +35,41 @@ function M.check_server(port)
   return result
 end
 
-function M.stop()
-  if M.server_job == nil then
+function M.stop(filename)
+  if not filename then
+    filename = vim.api.nvim_buf_get_name(0)
+  end
+
+  local server_job = M.server_jobs[filename]
+
+  if server_job == nil then
     return
   end
 
   -- this should close all pipes
-  M.server_job:shutdown(0, 3)
+  server_job:shutdown(0, 3)
 
   -- and since the process won't die
-  local _handle = io.popen("kill " .. M.server_job.pid)
+  local _handle = io.popen("kill " .. server_job.pid)
   if _handle ~= nil then
     _handle:close()
   end
 end
 
-function M.open_browser()
-  if M.server_job == nil then
+function M.stop_all()
+  for filename, _ in pairs(M.server_jobs) do
+    M.stop(filename)
+  end
+  M.server_jobs = {}
+end
+
+function M.open_browser(port)
+  if not port then
+    vim.notify("Port not specified, cannot open browser", vim.log.levels.ERROR)
     return
   end
-
-  vim.cmd("Open http://localhost:" .. config.options.port)
+  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.INFO)
+  vim.cmd("Open http://localhost:" .. port)
 end
 
 function M.start()
@@ -56,24 +81,28 @@ function M.start()
   local Job = require("plenary.job")
   local theme_dir = config.options.theme_dir
   local filename = vim.api.nvim_buf_get_name(0)
+  -- add some random to the port to avoid conflicts
+  local port = config.options.port + math.random(1, 1000)
 
   if theme_dir == nil then
     theme_dir = '.'
   end
 
-  M.server_job = Job:new({
+  local server_job = Job:new({
     command = "npx",
-    args = { "marp-dev-preview", "--port", tostring(config.options.port), "--theme-dir", theme_dir, filename },
+    args = { "marp-dev-preview", "--port", tostring(port), "--theme-dir", theme_dir, filename },
     on_stdout = function(_, data)
       if data then
         vim.schedule(function()
-          vim.notify("[Marp] " .. data, vim.log.levels.INFO, { title = "Marp Dev Preview" })
+          vim.notify("here1")
+          vim.notify("[Marp] " .. data, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
         end)
       end
     end,
     on_stderr = function(_, data)
       if data then
         vim.schedule(function()
+          vim.notify("here2")
           vim.notify("[Marp] " .. data, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
         end)
       end
@@ -82,29 +111,60 @@ function M.start()
       if return_val ~= 0 then
         local result = table.concat(j:result(), "\n")
         vim.schedule(function()
+          vim.notify("here3")
           vim.notify("[Marp] Server exited with code " .. return_val .. "\n" .. result, vim.log.levels.ERROR,
             { title = "Marp Dev Preview" })
         end)
       else
         vim.schedule(function()
+          vim.notify("here4")
           vim.notify("[Marp] Server exited normally.", vim.log.levels.INFO, { title = "Marp Dev Preview" })
         end)
       end
     end,
   })
 
-  M.server_job:start()
+  server_job.port = port
+  server_job:start()
+
+  M.server_jobs[filename] = server_job
 
   local timer = vim.loop.new_timer()
-  timer:start(2000, 0, vim.schedule_wrap(M.open_browser))
+  timer:start(500, 500, vim.schedule_wrap(function()
+    if not port then
+      vim.notify("Port not assigned yet, waiting...", vim.log.levels.INFO)
+      return
+    end
 
-  vim.notify("Server started with pid: " .. M.server_job.pid)
+    if not M.check_server(port) then
+      vim.notify("Server not responding yet, waiting...", vim.log.levels.INFO)
+      return
+    end
+
+    M.open_browser(port)
+    timer:stop()
+    timer:close()
+  end))
+
+  vim.notify("Server started with pid: " .. server_job.pid)
 end
 
 function M.server_cmd(cmd, arg)
   local curl = require("plenary.curl")
   local call_curl = function()
-    return curl.post("http://localhost:" .. config.options.port .. "/api/command", {
+    local filename = vim.api.nvim_buf_get_name(0)
+    if filename == nil or filename == "" then
+      return nil, "No file associated with the current buffer"
+    end
+    local server_job = M.server_jobs[filename]
+    if server_job == nil then
+      return nil, "No server job found for the current file"
+    end
+    local port = server_job.port
+    if port == nil then
+      return nil, "No port found for the current server job, this is a bug. Please report it."
+    end
+    return curl.post("http://localhost:" .. port .. "/api/command", {
       body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
       headers = { ["Content-Type"] = "application/json" },
       timeout = config.options.timeout,

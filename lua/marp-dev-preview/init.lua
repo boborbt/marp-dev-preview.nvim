@@ -27,8 +27,6 @@ M.setup = function(user_config)
   autocommands.setup()
 end
 
-M.server = server
-
 M._goto_slide = function(slide_number)
   if not slide_number then
     return true, nil
@@ -103,10 +101,8 @@ M.set_live_sync = function(val)
   vim.notify("Server is running: " .. tostring(server.is_running()), vim.log.levels.INFO)
 
   if val and not server.is_running() then
-    vim.notify("Server not found at http://localhost:"
-      .. (config.port or "8080")
-      .. ". Live sync not enabled",
-      vim.log.levels.WARN)
+    vim.notify("Server not found for buffer " .. vim.api.nvim_get_current_buf(),
+      vim.log.levels.INFO)
     return
   end
 
