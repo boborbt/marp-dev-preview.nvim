@@ -57,8 +57,43 @@ Other commands you might find useful:
 - **MarpDevPreviewToggleLiveSync** toggles live sync on or off.
 - **MarpDevPreviewGoto** allows you to jump to a specific slide within your markdown file (if live sync is enabled, the preview will update accordingly).
 
+---
 
-**LazyVim configuration example with key mappings:**
+## Configuration
+
+You can customize the plugin by passing options to the `setup` function. Here are the available options and their default values:
+
+ Option              | Type    | Default | Description
+---------------------|---------|---------|-----------------------------------------------------------------------------------------------
+ `live_sync`         | boolean | `false` | If true automatically enables live_sync for a newly opened marp file when the server is running.
+ `timeout`           | number  | `5000`  | Timeout in milliseconds for trying to establish a connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server.
+ `port`              | number  | `8080`  | Port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview).
+
+
+
+Defaults:
+
+```lua
+require('marp-dev-preview').setup({
+  live_sync = false,
+
+  -- Marp Dev Preview server options
+  timeout = 5000,
+  port = 8080
+})
+```
+
+---
+
+## Contributing
+
+I’m new to Lua and NeoVim plugin development. Feedback, issues, and pull requests are welcome! Help improve the plugin for everyone.
+
+I'm opening issues for enhancements and bugs as I find them. Feel free to peruse them if you're looking for something to work on.
+
+---
+
+## Complete lazy.nvim configuration example with key mappings:**
 
 ```lua
 return {
@@ -125,36 +160,4 @@ return {
 }
 ```
 
----
 
-## Configuration
-
-You can customize the plugin by passing options to the `setup` function. Here are the available options and their default values:
-
- Option              | Type    | Default | Description
----------------------|---------|---------|-----------------------------------------------------------------------------------------------
- `live_sync`         | boolean | `false` | If true automatically enables live_sync for a newly opened marp file when the server is running.
- `timeout`           | number  | `5000`  | Timeout in milliseconds for trying to establish a connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server.
- `port`              | number  | `8080`  | Port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview).
-
-
-
-Defaults:
-
-```lua
-require('marp-dev-preview').setup({
-  live_sync = false,
-
-  -- Marp Dev Preview server options
-  timeout = 5000,
-  port = 8080
-})
-```
-
----
-
-## Contributing
-
-I’m new to Lua and NeoVim plugin development. Feedback, issues, and pull requests are welcome! Help improve the plugin for everyone.
-
-I'm opening issues for enhancements and bugs as I find them. Feel free to peruse them if you're looking for something to work on.
