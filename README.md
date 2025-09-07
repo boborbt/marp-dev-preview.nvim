@@ -4,17 +4,17 @@ Seamlessly integrate [Marp Dev Preview](https://github.com/boborbt/marp-dev-prev
 
 ## Features
 
+- **Starts/stops the preview server** (experimental)
 - **Live Sync Slides**
   - Updates the preview as you edit your Markdown slides (rendering incrementally at each buffer change).
   – Keep your Markdown slide position synced with the preview.  (*One-way sync: browser → NeoVim not supported.*)
 - **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.
-- **Find String** – Search text in the preview. Temporarily disables auto-sync.
 
 ---
 
 ## Quick Start
 
-**Install with `lazy.nvim`:**
+**Install with the plugin manager of your choice, here is a `lazy.nvim`** example (below you can find my complete lazy.nvim configuration):
 
 ```lua
 use {
@@ -25,7 +25,7 @@ use {
   end
 }
 ```
-The plugin provide experimental support to start the Marp Dev Preview server for you. If you prefer to start it yourself, please follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up.
+The plugin provides experimental support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up.
 
 In brief, the easiest way to start the server is via npx:
 
