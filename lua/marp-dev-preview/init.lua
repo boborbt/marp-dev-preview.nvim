@@ -95,7 +95,7 @@ M.set_live_sync = function(val)
   if val and not utils.is_marp() then
     vim.notify("[MDR LiveSync] Refusing to start live sync on non-marp file",
       vim.log.levels.WARN)
-    return
+    return false
   end
 
   vim.notify("[MDP LiveSync]: Server is running: " .. tostring(server.is_running()), vim.log.levels.DEBUG)
@@ -103,12 +103,14 @@ M.set_live_sync = function(val)
   if val and not server.is_running() then
     vim.notify("Server not found for buffer " .. vim.api.nvim_get_current_buf(),
       vim.log.levels.INFO)
-    return
+    return false
   end
 
   vim.notify("[MDR LiveSync] " .. (val and "enabled" or "disabled"), vim.log.levels.DEBUG)
   local bufnr = vim.api.nvim_get_current_buf()
   state.live_buffers[bufnr] = val
+
+  return true
 end
 
 M.toggle_live_sync = function()
