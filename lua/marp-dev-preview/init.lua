@@ -124,4 +124,21 @@ M.is_live_sync_on = function()
   return state.live_buffers[bufnr] == true
 end
 
+-- lualine status line component
+-- returns a symbol showing:
+-- - nothing if not a marp file
+-- - 'Marp" if marp file but live sync Off"'
+
+M.statusline = function()
+  if not utils.is_marp() then
+    return ""
+  end
+
+  if M.is_live_sync_on() then
+    return "Marp: %#DiffAdd#🔄%*"
+  else
+    return "Marp: %#DiffDelete#🔄%*"
+  end
+end
+
 return M

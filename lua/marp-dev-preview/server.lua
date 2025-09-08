@@ -17,15 +17,22 @@ function M.is_running()
   end
 
   local chk = M.check_server(server_job.port)
-  vim.notify("Check server returned: " .. tostring(chk), vim.log.levels.INFO)
+  vim.notify("Check server returned: " .. tostring(chk), vim.log.levels.DEBUG)
+
   return chk == "200"
 end
 
+
+-- Check if the server is running by sending a request to the given Port
+-- Returns the HTTP status code if running, nil otherwise
+-- @param port string The port to check, defaults to "8080" if not provided
+-- @return string|nil The HTTP status code if the server is running, nil otherwise
 function M.check_server(port)
   port = port or "8080"
   local url = string.format("http://localhost:%s", port)
+  local cmd_str = string.format("curl -Is -o /dev/null -w '%%{http_code}' %s", url)
 
-  local result = vim.fn.system(string.format("curl -Is -o /dev/null -w '%%{http_code}' %s", url))
+  local result = vim.fn.system(cmd_str)
   result = vim.trim(result)
 
   if result == "" then
@@ -35,6 +42,15 @@ function M.check_server(port)
   return result
 end
 
+-- Stop the server associated with the current buffer or the given filename
+-- If no filename is given, it defaults to the current buffer's filename
+-- This function attempts to gracefully shut down the server process
+-- If the process does not terminate, it forcefully kills it
+-- It also removes the server job from the server_jobs table
+-- to prevent memory leaks
+-- @param filename string|nil The filename associated with the server to stop_all
+-- If nil, uses the current buffer's filename
+-- @return nil
 function M.stop(filename)
   if not filename then
     filename = vim.api.nvim_buf_get_name(0)
@@ -56,6 +72,11 @@ function M.stop(filename)
   end
 end
 
+-- Stop all running server_jobs
+-- This function iterates over all entries in the server_jobs table
+-- and calls the stop function for each on_exit
+-- It then clears the server_jobs table to free up memory
+-- @return nil
 function M.stop_all()
   for filename, _ in pairs(M.server_jobs) do
     M.stop(filename)
@@ -63,15 +84,21 @@ function M.stop_all()
   M.server_jobs = {}
 end
 
+-- Open the default web browser to the given Port
+-- If no port is provided, it notifies the user of the ERROR
+-- @param port string The port to open in the open_browser
+-- @return nil
 function M.open_browser(port)
   if not port then
     vim.notify("Port not specified, cannot open browser", vim.log.levels.ERROR)
     return
   end
-  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.INFO)
+  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.DEBUG)
   vim.cmd("Open http://localhost:" .. port)
 end
 
+-- Start the marp server for the current buffer
+-- @return nil
 function M.start()
   if M.is_running() then
     vim.notify("Server is already running, bailing out", vim.log.levels.WARN)
@@ -94,7 +121,6 @@ function M.start()
     on_stdout = function(_, data)
       if data then
         vim.schedule(function()
-          vim.notify("here1")
           vim.notify("[Marp] " .. data, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
         end)
       end
@@ -102,7 +128,6 @@ function M.start()
     on_stderr = function(_, data)
       if data then
         vim.schedule(function()
-          vim.notify("here2")
           vim.notify("[Marp] " .. data, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
         end)
       end
@@ -111,14 +136,11 @@ function M.start()
       if return_val ~= 0 then
         local result = table.concat(j:result(), "\n")
         vim.schedule(function()
-          vim.notify("here3")
-          vim.notify("[Marp] Server exited with code " .. return_val .. "\n" .. result, vim.log.levels.ERROR,
-            { title = "Marp Dev Preview" })
+          vim.notify("[Marp] Server exited with code " .. return_val .. "\n" .. result, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
         end)
       else
         vim.schedule(function()
-          vim.notify("here4")
-          vim.notify("[Marp] Server exited normally.", vim.log.levels.INFO, { title = "Marp Dev Preview" })
+          vim.notify("[Marp] Server exited normally.", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
         end)
       end
     end,
@@ -132,12 +154,12 @@ function M.start()
   local timer = vim.loop.new_timer()
   timer:start(500, 500, vim.schedule_wrap(function()
     if not port then
-      vim.notify("Port not assigned yet, waiting...", vim.log.levels.INFO)
+      vim.notify("Port not assigned yet, waiting...", vim.log.levels.DEBUG)
       return
     end
 
     if not M.check_server(port) then
-      vim.notify("Server not responding yet, waiting...", vim.log.levels.INFO)
+      vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG)
       return
     end
 
@@ -146,24 +168,35 @@ function M.start()
     timer:close()
   end))
 
-  vim.notify("Server started with pid: " .. server_job.pid)
+  vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG)
 end
 
+-- Send a command to the marp server associated with the current buffer
+-- @param cmd string The command to send to the server
+-- @param arg table A table containing a key and value to send with the command
+-- Example
+-- M.server_cmd("goto", { key = "slide", value = "4" })
+-- @return boolean, table|nil A boolean indicating success, and the response table or nil
 function M.server_cmd(cmd, arg)
   local curl = require("plenary.curl")
+
   local call_curl = function()
+
     local filename = vim.api.nvim_buf_get_name(0)
     if filename == nil or filename == "" then
       return nil, "No file associated with the current buffer"
     end
+
     local server_job = M.server_jobs[filename]
     if server_job == nil then
       return nil, "No server job found for the current file"
     end
+
     local port = server_job.port
     if port == nil then
       return nil, "No port found for the current server job, this is a bug. Please report it."
     end
+
     return curl.post("http://localhost:" .. port .. "/api/command", {
       body = vim.fn.json_encode({ command = cmd, [arg.key] = arg.value }),
       headers = { ["Content-Type"] = "application/json" },
@@ -176,6 +209,9 @@ function M.server_cmd(cmd, arg)
   return ok, response
 end
 
+-- Refresh the marp server with the given markdown Content-Type
+-- @param markdown string The markdown content to send to the server_jobs
+-- @return boolean, table|nil A boolean indicating success, and the response table or nil
 function M.refresh(markdown)
   local curl = require("plenary.curl")
   local call_curl = function()
