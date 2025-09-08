@@ -22,6 +22,6 @@ command! -nargs=0 MarpDevPreviewToggleLiveSync lua require("marp-dev-preview").t
 command! -nargs=0 MarpDevPreviewStartLiveSync lua require("marp-dev-preview").set_live_sync(true)
 command  -nargs=0 MarpDevPreviewStopLiveSync lua require("marp-dev-preview").set_live_sync(false)
 command! -nargs=0 MarpDevPreviewGoTo lua require("marp-dev-preview").goto_slide()
-command! -nargs=0 MarpDevPreviewFind lua require("marp-dev-preview").find()
 command! -nargs=0 MarpDevPreviewStartServer lua require("marp-dev-preview").start_server()
 command! -nargs=0 MarpDevPreviewStopServer lua require("marp-dev-preview").stop_server()
+command! -nargs=0 MarpDevPreviewStartAll lua require("marp-dev-preview").start_server_and_live_syn()

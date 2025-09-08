@@ -361,37 +361,6 @@ describe('marp-dev-preview methods:', function()
     end)
   end)
 
-  describe('find', function()
-    it('correctly invokes server find function (success case)', function()
-      _G.input.usr_input = "search term"
-
-      mdp.find()
-
-      eq("find", _G.sc.cmd)
-      eq({ key = "string", value = "search term" }, _G.sc.args)
-    end)
-
-    it('notifies the user in case of server error', function()
-      _G.sc.ok = false
-      _G.sc.response = "error body"
-      _G.input.usr_input = "search term"
-
-      mdp.find()
-
-      eq("find", _G.sc.cmd)
-      eq({ key = "string", value = "search term" }, _G.sc.args)
-      eq("Failed to search: error body", _G.notify.str)
-    end)
-
-    it('does not call the server if the inserted string is empty', function()
-      _G.input.usr_input = ""
-
-      mdp.find()
-
-      assert.is.Nil(_G.sc.cmd)
-      assert.is.Nil(_G.sc.args)
-    end)
-  end)
 
   describe('live_sync option:', function()
     it('if on live_sync will be enabled on marp files', function()

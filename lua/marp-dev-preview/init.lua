@@ -9,6 +9,8 @@ local server = require("marp-dev-preview.server")
 local autocommands = require("marp-dev-preview.autocommands")
 local utils = require("marp-dev-preview.utils")
 
+-- Config options
+
 M.get = function(opt)
   return config.options[opt]
 end
@@ -84,25 +86,6 @@ M.goto_current_slide = function()
 
   M._last_slide_number = slide_number
   return M._goto_slide(slide_number)
-end
-
-M.find = function()
-  local input = vim.fn.input("Search string: ")
-  if input == "" then
-    return
-  end
-
-  local ok, response = server.server_cmd("find", { key = "string", value = input })
-  if not ok then
-    vim.notify("Failed to search: " .. response, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-    return
-  end
-
-  if response.status == 200 then
-    M.set_live_sync(false)
-  else
-    vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-  end
 end
 
 M.start_server = function()
