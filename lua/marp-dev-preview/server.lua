@@ -224,7 +224,21 @@ end
 function M.refresh(markdown)
   local curl = require("plenary.curl")
   local call_curl = function()
-    return curl.post("http://localhost:" .. config.options.port .. "/api/reload", {
+    local filename = vim.api.nvim_buf_get_name(0)
+    if filename == nil or filename == "" then
+      return nil, "No file associated with the current buffer"
+    end
+    local server_job = M.server_jobs[filename]
+    if server_job == nil then
+      return nil, "No server job found for the current file"
+    end
+    local port = server_job.port
+    if port == nil then
+      return nil, "No port found for the current server job, this is a bug.
+Please report it."
+    end
+
+    return curl.post("http://localhost:" .. port .. "/api/reload", {
       body = markdown,
       headers = { ["Content-Type"] = "text/markdown" },
       timeout = config.options.timeout,
