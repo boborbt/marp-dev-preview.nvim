@@ -38,14 +38,16 @@ M.start_server_and_live_sync = function()
   timer:start(500, 500, vim.schedule_wrap(function()
     count = count + 500
     if count > config.options.live_sync_start_timeout then
-      vim.notify("Server not started after ".. config.live_sync_timeout .. "ms, giving up", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+      vim.notify("Server not started after ".. config.live_sync_timeout .. "ms, giving up",
+        vim.log.levels.ERROR, { title = "Marp Dev Preview" })
       timer:stop()
       timer:close()
       return
     end
 
     if not M.set_live_sync(true) then
-      vim.notify("Failed to start live sync, will retry...", vim.log.levels.WARN, { title = "Marp Dev Preview" })
+      vim.notify("Failed to start live sync, will retry...",
+        vim.log.levels.WARN, { title = "Marp Dev Preview" })
       return
     end
 
@@ -64,7 +66,8 @@ M.goto_slide = function()
     utils.buf_goto_slide(n)
     server.goto_slide(n)
   else
-    vim.notify(input .. " is not a valid slide number", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    vim.notify(input .. " is not a valid slide number",
+      vim.log.levels.ERROR, { title = "Marp Dev Preview" })
   end
 end
 
@@ -99,7 +102,8 @@ M.set_live_sync = function(val)
     return false
   end
 
-  vim.notify("Server is running: " .. tostring(server.is_running()), vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+  vim.notify("Server is running: " .. tostring(server.is_running()),
+    vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
   if val and not server.is_running() then
     vim.notify("Server not found for buffer " .. vim.api.nvim_get_current_buf(),
@@ -107,7 +111,8 @@ M.set_live_sync = function(val)
     return false
   end
 
-  vim.notify("Live Sync " .. (val and "enabled" or "disabled"), vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+  vim.notify("Live Sync " .. (val and "enabled" or "disabled"),
+    vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
   local bufnr = vim.api.nvim_get_current_buf()
   state.live_buffers[bufnr] = val
 
