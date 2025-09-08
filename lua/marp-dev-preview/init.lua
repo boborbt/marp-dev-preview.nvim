@@ -135,9 +135,9 @@ M.statusline = function()
   end
 
   if M.is_live_sync_on() then
-    return "Marp: %#DiffAdd#🔄%*"
+    return "Marp: %#DiffAdd#󱚜%*"
   else
-    return "Marp: %#DiffDelete#🔄%*"
+    return "Marp: %#DiffDelete#󱚜%*"
   end
 end
 
