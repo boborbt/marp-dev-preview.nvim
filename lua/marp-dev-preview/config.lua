@@ -20,6 +20,9 @@ M.setup = function(config)
   for k, v in pairs(config) do
     M.options[k] = v
   end
+
+  vim.api.nvim_set_hl(0, "LiveSyncOn", { fg = "#00ff00" })
+  vim.api.nvim_set_hl(0, "LiveSyncOff",  { fg = "#ff0000" })
 end
 
 return M
