@@ -27,6 +27,32 @@ M.setup = function(user_config)
   autocommands.setup()
 end
 
+M.start_server_and_live_sync = function()
+  M.start_server()
+
+  local count = 0
+
+  timer = vim.loop.new_timer()
+  timer:start(500, 500, vim.schedule_wrap(function()
+    count = count + 500
+    if count > config.options.live_sync_start_timeout then
+      vim.notify("Server not started after ".. config.live_sync_timeout ."ms, giving up", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+      timer:stop()
+      timer:close()
+      return
+    end
+
+    if not M.set_live_sync(true) then
+      vim.notify("Failed to start live sync, will retry...", vim.log.levels.WARN, { title = "Marp Dev Preview" })
+      return
+    end
+
+    timer:stop()
+    timer:close()
+  end))
+end
+
+
 M._goto_slide = function(slide_number)
   if not slide_number then
     return true, nil

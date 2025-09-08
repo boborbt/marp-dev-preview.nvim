@@ -154,8 +154,8 @@ function M.start()
   local timer = vim.loop.new_timer()
   local count = 0
   timer:start(500, 500, vim.schedule_wrap(function()
-    count = count + 1
-    if count > 6 then
+    count = count + 500
+    if count > config.options.server_start_timeout then
       vim.notify("Server did not start in time, please check for errors", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
       timer:stop()
       timer:close()

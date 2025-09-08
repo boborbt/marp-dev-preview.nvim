@@ -4,7 +4,9 @@ M.options = {
   -- marp-dev-preview server port
   port = 8080,
   -- marp-dev-preview server connection_timeout
-  timeout = 1000,
+  server_cmds_timeout = 1000,
+  server_start_timeout = 3000,
+  live_sync_start_timeout = 3000,
 
   live_sync = false,
 
