@@ -55,14 +55,6 @@ M.start_server_and_live_sync = function()
 end
 
 
-M._goto_slide = function(slide_number)
-  if not slide_number then
-    return true, nil
-  end
-
-  return server.server_cmd("goto", { key = "slide", value = slide_number })
-end
-
 M.goto_slide = function()
   local input = vim.fn.input("Slide number: ")
   local n = tonumber(input)
@@ -70,7 +62,7 @@ M.goto_slide = function()
 
   if n and n >= 1 and n <= num_slides then
     utils.buf_goto_slide(n)
-    M._goto_slide(n)
+    server.goto_slide(n)
   else
     vim.notify(input .. " is not a valid slide number", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
   end
@@ -85,7 +77,7 @@ M.goto_current_slide = function()
   end
 
   M._last_slide_number = slide_number
-  return M._goto_slide(slide_number)
+  return server.goto_slide(slide_number)
 end
 
 M.start_server = function()

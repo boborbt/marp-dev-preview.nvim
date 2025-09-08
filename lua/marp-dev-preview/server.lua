@@ -218,6 +218,16 @@ function M.server_cmd(cmd, arg)
   return ok, response
 end
 
+M.goto_slide = function(slide_number)
+  if not slide_number then
+    return true, nil
+  end
+
+  return M.server_cmd("goto", { key = "slide", value = slide_number })
+end
+
+
+
 -- Refresh the marp server with the given markdown Content-Type
 -- @param markdown string The markdown content to send to the server_jobs
 -- @return boolean, table|nil A boolean indicating success, and the response table or nil

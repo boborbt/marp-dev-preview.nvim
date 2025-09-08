@@ -409,10 +409,10 @@ describe('marp-dev-preview methods:', function()
 
 
   describe('goto_current_slide', function()
-    it('calls _goto_slide with the current slide number', function()
+    it('calls server.goto_slide with the current slide number', function()
       local goto_slide_called_with = nil
-      local original_goto_slide = mdp._goto_slide
-      mdp._goto_slide = function(slide_number)
+      local original_goto_slide = server.goto_slide
+      server.goto_slide = function(slide_number)
         goto_slide_called_with = slide_number
       end
 
@@ -425,14 +425,14 @@ describe('marp-dev-preview methods:', function()
 
       eq(5, goto_slide_called_with)
 
-      mdp._goto_slide = original_goto_slide
+      server.goto_slide = original_goto_slide
       utils.current_slide_number = original_current_slide_number
     end)
 
-    it('does not call _goto_slide if the slide number is the same as the last one', function()
+    it('does not call server.goto_slide if the slide number is the same as the last one', function()
       local goto_slide_called = false
-      local original_goto_slide = mdp._goto_slide
-      mdp._goto_slide = function(slide_number)
+      local original_goto_slide = server.goto_slide
+      server.goto_slide = function(slide_number)
         goto_slide_called = true
       end
 
@@ -445,7 +445,7 @@ describe('marp-dev-preview methods:', function()
 
       assert.is.False(goto_slide_called)
 
-      mdp._goto_slide = original_goto_slide
+      server.goto_slide = original_goto_slide
       utils.current_slide_number = original_current_slide_number
     end)
   end)
