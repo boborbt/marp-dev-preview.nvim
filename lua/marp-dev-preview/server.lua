@@ -234,8 +234,7 @@ function M.refresh(markdown)
     end
     local port = server_job.port
     if port == nil then
-      return nil, "No port found for the current server job, this is a bug.
-Please report it."
+      return nil, "No port found for the current server job, this is a bug. Please report it."
     end
 
     return curl.post("http://localhost:" .. port .. "/api/reload", {
