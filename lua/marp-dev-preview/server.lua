@@ -90,10 +90,10 @@ end
 -- @return nil
 function M.open_browser(port)
   if not port then
-    vim.notify("Port not specified, cannot open browser", vim.log.levels.ERROR)
+    vim.notify("Port not specified, cannot open browser", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return
   end
-  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.DEBUG)
+  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
   vim.cmd("Open http://localhost:" .. port)
 end
 
@@ -101,7 +101,7 @@ end
 -- @return nil
 function M.start()
   if M.is_running() then
-    vim.notify("Server is already running, bailing out", vim.log.levels.WARN)
+    vim.notify("Server is already running, bailing out", vim.log.levels.WARN, { title = "Marp Dev Preview" })
     return
   end
   -- Uses npx to start the marp server
@@ -152,14 +152,23 @@ function M.start()
   M.server_jobs[filename] = server_job
 
   local timer = vim.loop.new_timer()
+  local count = 0
   timer:start(500, 500, vim.schedule_wrap(function()
+    count = count + 1
+    if count > 6 then
+      vim.notify("Server did not start in time, please check for errors", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+      timer:stop()
+      timer:close()
+      return
+    end
+
     if not port then
-      vim.notify("Port not assigned yet, waiting...", vim.log.levels.DEBUG)
+      vim.notify("Port not assigned yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
       return
     end
 
     if not M.check_server(port) then
-      vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG)
+      vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
       return
     end
 
@@ -168,7 +177,7 @@ function M.start()
     timer:close()
   end))
 
-  vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG)
+  vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 end
 
 -- Send a command to the marp server associated with the current buffer

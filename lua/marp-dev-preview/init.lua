@@ -44,7 +44,7 @@ M.goto_slide = function()
     utils.buf_goto_slide(n)
     M._goto_slide(n)
   else
-    vim.notify(input .. " is not a valid slide number", vim.log.levels.ERROR)
+    vim.notify(input .. " is not a valid slide number", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
   end
 end
 
@@ -68,14 +68,14 @@ M.find = function()
 
   local ok, response = server.server_cmd("find", { key = "string", value = input })
   if not ok then
-    vim.notify("Failed to search: " .. response, vim.log.levels.ERROR)
+    vim.notify("Failed to search: " .. response, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return
   end
 
   if response.status == 200 then
     M.set_live_sync(false)
   else
-    vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR)
+    vim.notify("Failed to search: " .. response.body, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
   end
 end
 
@@ -93,20 +93,20 @@ end
 
 M.set_live_sync = function(val)
   if val and not utils.is_marp() then
-    vim.notify("[MDR LiveSync] Refusing to start live sync on non-marp file",
-      vim.log.levels.WARN)
+    vim.notify("Refusing to start live sync on non-marp file",
+      vim.log.levels.WARN, { title = "Marp Dev Preview" } )
     return false
   end
 
-  vim.notify("[MDP LiveSync]: Server is running: " .. tostring(server.is_running()), vim.log.levels.DEBUG)
+  vim.notify("Server is running: " .. tostring(server.is_running()), vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
   if val and not server.is_running() then
     vim.notify("Server not found for buffer " .. vim.api.nvim_get_current_buf(),
-      vim.log.levels.INFO)
+      vim.log.levels.INFO, { title = "Marp Dev Preview" })
     return false
   end
 
-  vim.notify("[MDR LiveSync] " .. (val and "enabled" or "disabled"), vim.log.levels.DEBUG)
+  vim.notify("Live Sync " .. (val and "enabled" or "disabled"), vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
   local bufnr = vim.api.nvim_get_current_buf()
   state.live_buffers[bufnr] = val
 
