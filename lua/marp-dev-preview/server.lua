@@ -56,7 +56,7 @@ function M.attach(port)
   end
 
   M.server_jobs[vim.api.nvim_buf_get_name(0)] = {
-    port = port
+    port = port,
     shutdown = function() end,
     pid = nil
   }
