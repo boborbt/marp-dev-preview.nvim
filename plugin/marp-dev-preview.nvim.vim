@@ -25,3 +25,5 @@ command! -nargs=0 MarpDevPreviewGoTo lua require("marp-dev-preview").goto_slide(
 command! -nargs=0 MarpDevPreviewStartServer lua require("marp-dev-preview").start_server()
 command! -nargs=0 MarpDevPreviewStopServer lua require("marp-dev-preview").stop_server()
 command! -nargs=0 MarpDevPreviewStartAll lua require("marp-dev-preview").start_server_and_live_syn()
+command! -nargs=0 MarpDevPreviewNextSlide lua require("marp-dev-preview").next_slide()
+command! -nargs=0 MarpDevPreviewPrevSlide lua require("marp-dev-preview").prev_slide()

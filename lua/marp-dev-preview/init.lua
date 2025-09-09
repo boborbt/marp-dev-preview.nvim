@@ -71,6 +71,24 @@ M.goto_slide = function()
   end
 end
 
+M.next_slide = function()
+  local n = utils.current_slide_number()
+  if n < utils.num_slides() then
+    n = n + 1
+  end
+  utils.buf_goto_slide(n)
+  server.goto_slide(n)
+end
+
+M.prev_slide = function()
+  local n = utils.current_slide_number()
+  if n > 1 then
+    n = n - 1
+  end
+  utils.buf_goto_slide(n)
+  server.goto_slide(n)
+end
+
 M._last_slide_number = nil
 
 M.goto_current_slide = function()
