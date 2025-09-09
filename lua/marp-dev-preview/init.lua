@@ -62,7 +62,6 @@ M.goto_slide = function()
 
   if n and n >= 1 and n <= num_slides then
     utils.buf_goto_slide(n)
-    server.goto_slide(n)
   else
     vim.notify(input .. " is not a valid slide number",
       vim.log.levels.ERROR, { title = "Marp Dev Preview" })
@@ -75,7 +74,6 @@ M.next_slide = function()
     n = n + 1
   end
   utils.buf_goto_slide(n)
-  server.goto_slide(n)
 end
 
 M.prev_slide = function()
@@ -84,7 +82,6 @@ M.prev_slide = function()
     n = n - 1
   end
   utils.buf_goto_slide(n)
-  server.goto_slide(n)
 end
 
 M._last_slide_number = nil
