@@ -46,8 +46,6 @@ M.start_server_and_live_sync = function()
     end
 
     if not M.set_live_sync(true) then
-      vim.notify("Failed to start live sync, will retry...",
-        vim.log.levels.WARN, { title = "Marp Dev Preview" })
       return
     end
 
