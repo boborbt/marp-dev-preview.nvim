@@ -45,14 +45,14 @@ end
 function M.attach(port)
   if not port then
     vim.notify("Port not specified, cannot attach", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-    return
+    return nil
   end
 
   vim.notify("Attaching to server at http://localhost:" .. port, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
   if not M.check_server(port) then
     vim.notify("No server running at the specified port", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-    return
+    return nil
   end
 
   M.server_jobs[vim.api.nvim_buf_get_name(0)] = {
@@ -62,6 +62,8 @@ function M.attach(port)
   }
 
   M.open_browser(port)
+
+  return true
 end
 
 -- Stop the server associated with the current buffer or the given filename

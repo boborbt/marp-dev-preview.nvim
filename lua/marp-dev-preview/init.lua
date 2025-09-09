@@ -109,7 +109,9 @@ M.stop_server = function()
 end
 
 M.attach_to_server = function(port)
-  server.attach(port)
+  if server.attach(port) then
+    M.set_live_sync(true)
+  end
 end
 
 M.set_live_sync = function(val)
