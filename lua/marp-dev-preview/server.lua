@@ -42,6 +42,28 @@ function M.check_server(port)
   return result
 end
 
+function M.attach(port)
+  if not port then
+    vim.notify("Port not specified, cannot attach", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    return
+  end
+
+  vim.notify("Attaching to server at http://localhost:" .. port, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+
+  if not M.check_server(port) then
+    vim.notify("No server running at the specified port", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    return
+  end
+
+  M.server_jobs[vim.api.nvim_buf_get_name(0)] = {
+    port = port
+    shutdown = function() end,
+    pid = nil
+  }
+
+  M.open_browser(port)
+end
+
 -- Stop the server associated with the current buffer or the given filename
 -- If no filename is given, it defaults to the current buffer's filename
 -- This function attempts to gracefully shut down the server process
@@ -57,8 +79,9 @@ function M.stop(filename)
   end
 
   local server_job = M.server_jobs[filename]
+  M.server_jobs[filename] = nil
 
-  if server_job == nil then
+  if server_job == nil or server_job.pid == nil then
     return
   end
 

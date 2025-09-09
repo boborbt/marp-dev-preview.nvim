@@ -108,6 +108,10 @@ M.stop_server = function()
   server.stop()
 end
 
+M.attach_to_server = function(port)
+  server.attach(port)
+end
+
 M.set_live_sync = function(val)
   if val and not utils.is_marp() then
     vim.notify("Refusing to start live sync on non-marp file",

@@ -27,3 +27,4 @@ command! -nargs=0 MarpDevPreviewStopServer lua require("marp-dev-preview").stop_
 command! -nargs=0 MarpDevPreviewStartAll lua require("marp-dev-preview").start_server_and_live_syn()
 command! -nargs=0 MarpDevPreviewNextSlide lua require("marp-dev-preview").next_slide()
 command! -nargs=0 MarpDevPreviewPrevSlide lua require("marp-dev-preview").prev_slide()
+command! -nargs=1 MarpDevPreviewAttach lua require("marp-dev-preview").attach(<f-args>)
