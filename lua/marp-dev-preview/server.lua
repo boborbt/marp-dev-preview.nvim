@@ -22,10 +22,6 @@ function M.is_running()
   return chk == "200"
 end
 
-M.close_browser = function()
-  M.server_cmd("close_preview", {})
-end
-
 -- Check if the server is running by sending a request to the given Port
 -- Returns the HTTP status code if running, nil otherwise
 -- @param port string The port to check, defaults to "8080" if not provided
@@ -89,8 +85,6 @@ function M.stop(filename)
   if server_job == nil or server_job.pid == nil then
     return
   end
-
-  M.close_browser()
 
   -- this should close all pipes
   server_job:shutdown(0, 3)
