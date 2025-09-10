@@ -38,7 +38,7 @@ M.start_server_and_live_sync = function()
   timer:start(500, 500, vim.schedule_wrap(function()
     count = count + 500
     if count > config.options.live_sync_start_timeout then
-      vim.notify("Server not started after ".. config.live_sync_timeout .. "ms, giving up",
+      vim.notify("Server not started after ".. config.options.live_sync_timeout .. "ms, giving up",
         vim.log.levels.ERROR, { title = "Marp Dev Preview" })
       timer:stop()
       timer:close()
