@@ -58,10 +58,10 @@ M.start_server_and_live_sync = function()
         vim.log.levels.INFO, { title = "Marp Dev Preview" })
       M.set_live_sync(true)
       M.goto_current_slide()
-    end
-
-    vim.notify("Server failed to start: " .. tostring(status),
+    else
+      vim.notify("Server failed to start: " .. tostring(status),
         vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    end
 
     -- server is either running or failed to start
     timer:stop()
