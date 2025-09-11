@@ -108,6 +108,28 @@ require('marp-dev-preview').setup({
 
 ---
 
+## Lualine configuration
+
+You can configure lualine to display the status of the preview live-sync using the `statusline` function on the main module. As in the following example:
+
+```lua
+require("lualine").setup({
+      options = {
+        ...
+      },
+      sections = {
+        lualine_a = { "mode" },
+        lualine_b = { "branch", "diff", "diagnostics" },
+        lualine_c = { "filename", require('marp-dev-preview').statusline },
+        lualine_x = { "encoding", "fileformat", "filetype" },
+        lualine_y = { "progress" },
+        lualine_z = { "location" },
+      },
+      ...
+```
+
+---
+
 ## Contributing
 
 I’m new to Lua and NeoVim plugin development. Feedback, issues, and pull requests are welcome! Help improve the plugin for everyone.
