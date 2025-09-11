@@ -178,8 +178,8 @@ function M.start()
   local port = config.options.port + math.random(1, 1000)
   local server_args = { "marp-dev-preview", "--port", tostring(port) }
   if theme_dir then
-    args:insert("--theme-dir")
-    args:insert("filename")
+    server_args:insert("--theme-dir")
+    server_args:insert("filename")
   end
 
   local server_job = Job:new({
