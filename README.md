@@ -110,7 +110,7 @@ require('marp-dev-preview').setup({
 
 ## Lualine configuration
 
-You can configure lualine to display the status of the preview live-sync using the `statusline` function on the main module. As in the following example:
+You can configure lualine to show the live preview sync status by using the statusline function from the main module. For example:
 
 ```lua
 require("lualine").setup({
