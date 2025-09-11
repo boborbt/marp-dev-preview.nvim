@@ -188,6 +188,10 @@ function M.start()
   table.insert(server_args, "-m")
   table.insert(server_args, filename)
 
+  vim.notify("Starting server with args: npx " .. table.concat(server_args, " "),
+    vim.log.levels.DEBUG,
+    { title = "Marp Dev Preview" })
+
   local server_job = Job:new({
     command = "npx",
     args = server_args,
