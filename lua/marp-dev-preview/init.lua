@@ -45,10 +45,13 @@ M.start_server_and_live_sync = function()
       return
     end
 
-    if not M.set_live_sync(true) then
+    server_live, status = server.is_running()
+    if not server_live and status == "Check" then
+      -- still starting up
       return
     end
 
+    -- server is either running or failed to start
     timer:stop()
     timer:close()
   end))

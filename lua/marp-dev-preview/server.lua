@@ -7,13 +7,13 @@ local config = require("marp-dev-preview.config")
 function M.is_running()
   local filename = vim.api.nvim_buf_get_name(0)
   if filename == nil or filename == "" then
-    return false
+    return false, "NoFile"
   end
 
   local server_job = M.server_jobs[filename]
 
   if not server_job then
-    return false
+    return false, "NoJob"
   end
 
   local chk = M.check_server(server_job.port)
@@ -21,7 +21,7 @@ function M.is_running()
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  return chk == "200"
+  return chk == "200", "Check"
 end
 
 -- Check if the server is running by sending a request to the given Port
