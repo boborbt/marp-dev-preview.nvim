@@ -10,7 +10,8 @@ M.options = {
 
   live_sync = false,
 
-  theme_dir = nil
+  -- array like { "/path/to/theme1", "/path/to/theme2" }
+  theme_set= {}
 }
 
 M.setup = function(config)

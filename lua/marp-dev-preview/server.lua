@@ -172,15 +172,20 @@ function M.start()
   end
   -- Uses npx to start the marp server
   local Job = require("plenary.job")
-  local theme_dir = config.options.theme_dir
+  local theme_set = config.options.theme_set
   local filename = vim.api.nvim_buf_get_name(0)
   -- add some random number to the port to avoid conflicts
   local port = config.options.port + math.random(1, 1000)
   local server_args = { "marp-dev-preview", "--port", tostring(port) }
-  if theme_dir then
-    table.insert(server_args, "--theme-dir")
-    table.insert(server_args, theme_dir)
+
+  if theme_set and #theme_set > 0 then
+    table.insert(server_args, "--theme-set")
+    for _, theme_dir in ipairs(config.options.theme_dirs) do
+      table.insert(server_args, theme_dir)
+    end
   end
+
+  table.insert(server_args, "-m")
   table.insert(server_args, filename)
 
   local server_job = Job:new({
