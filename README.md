@@ -16,8 +16,11 @@ Currently the plugin **has been only tested on MacOS**. Please open an issue if 
 - **Next/Prev Slides** - provides commands to navigate to the next/previous slide in your markdown file.
 
 ---
+
 <center>
+  
   ![mdp-live-demo](https://github.com/user-attachments/assets/47c8d593-1ae6-4632-a0a8-cd6ddb5f5efa)
+
 </center>
 
 ---
