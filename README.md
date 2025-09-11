@@ -30,17 +30,17 @@ use {
   end
 }
 ```
-The plugin provides experimental support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up.
+The plugin provides experimental support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up. And use MarpDevPreviewStartAttach command to connect your marp buffer with the server.
 
-To start live sync between your markdown file and the Marp Dev Preview server, use the command:
-
-```vim
-:MarpDevPreviewStartLiveSync
-```
-Other commands you might find useful:
+To start the server and the live sync, run the following command in NeoVim:
 
 ```vim
 :MarpDevPreviewStartAll
+```
+
+Other commands you might find useful:
+
+```vim
 :MarpDevPreviewStartServer
 :MarpDevPreviewStopServer
 :MarpDevPreviewStartLiveSync
@@ -49,6 +49,7 @@ Other commands you might find useful:
 :MarpDevPreviewGoto
 :MarpDevPreviewNextSlide
 :MarpDevPreviewPrevSlide
+:MarpDevPreviewStartAttach
 ```
 
 - **MarpDevPreviewStartAll** starts the Marp Dev Preview server (if not already running), opens a browser on the preview page, and enables live sync.
@@ -60,6 +61,7 @@ Other commands you might find useful:
 - **MarpDevPreviewGoto** allows you to jump to a specific slide within your markdown file (if live sync is enabled, the preview will update accordingly).
 - **MarpDevPreviewNextSlide** jumps to the next slide in your markdown file (if live sync is enabled, the preview will update accordingly).
 - **MarpDevPreviewPrevSlide** jumps to the previous slide in your markdown file (if live sync is enabled, the preview will update accordingly).
+- **MarpDevPreviewStartAttach** connects your marp buffer with a running Marp Dev Preview server. You can provide as an argument the port number on which the server is running.
 
 ---
 
@@ -73,9 +75,7 @@ You can customize the plugin by passing options to the `setup` function. Here ar
 `server_cmds_timeout`            | number  | `1000`  | Timeout in milliseconds for server operations.
 `live_sync_start_timeout`       | number  | `3000`  | Timeout in milliseconds for trying to start live sync. If the server is not running or not reachable within this time, an error will be shown.
  `port`              | number  | `8080`  | *base* port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview). The plugin will try to connect to a random port computed as `port + n` where `n` is a random number between 0 and 1000. This is to avoid port conflicts if you run multiple instances of NeoVim or if you want to connect to different presentations.
-`theme_dir`        | string  | `nil`   | If set, it will be passed to the Marp Dev Preview server as the `--theme-dir` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the position of the marp file being edited.
-
-
+`theme_set`        | array | {}   | If set, it will be passed to the Marp Dev Preview server as the `--theme-set` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the position of the marp file being edited.
 
 Defaults:
 
@@ -94,7 +94,7 @@ require('marp-dev-preview').setup({
   port = 8080,
 
   -- directory containing custom themes, relative to the marp file being edited
-  theme_dir = nil
+  theme_set = nil
 })
 ```
 
@@ -119,7 +119,7 @@ return {
     mdp = require('marp-dev-preview')
     mdp.setup({
       live_sync = true,
-      theme_dir = "theme/themes"
+      theme_set = { "theme" }
     })
   end,
 
