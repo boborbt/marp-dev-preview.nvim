@@ -181,7 +181,7 @@ function M.start()
     table.insert(server_args, "--theme-dir")
     table.insert(server_args, theme_dir)
   end
-  table.insert(server_args, "filename")
+  table.insert(server_args, filename)
 
   local server_job = Job:new({
     command = "npx",
