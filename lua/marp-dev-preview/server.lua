@@ -180,7 +180,7 @@ function M.start()
 
   if theme_set and #theme_set > 0 then
     table.insert(server_args, "--theme-set")
-    for _, theme_dir in ipairs(config.options.theme_dirs) do
+    for _, theme_dir in ipairs(theme_set) do
       table.insert(server_args, theme_dir)
     end
   end
