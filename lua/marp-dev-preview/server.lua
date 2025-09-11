@@ -208,7 +208,7 @@ function M.start()
       if data then
         vim.schedule(function()
           vim.notify("[Marp] " .. data,
-            vim.log.levels.ERROR,
+            vim.log.levels.WARN,
             { title = "Marp Dev Preview" })
         end)
       end
