@@ -48,8 +48,20 @@ M.start_server_and_live_sync = function()
     server_live, status = server.is_running()
     if not server_live and status == "Check" then
       -- still starting up
+      nvim.notify("Waiting for server to start...",
+        vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
       return
     end
+
+    if server_live then
+      vim.notify("Server started, enabling live sync",
+        vim.log.levels.INFO, { title = "Marp Dev Preview" })
+      M.set_live_sync(true)
+      M.goto_current_slide()
+    end
+
+    vim.notify("Server failed to start: " .. tostring(status),
+        vim.log.levels.ERROR, { title = "Marp Dev Preview" })
 
     -- server is either running or failed to start
     timer:stop()
