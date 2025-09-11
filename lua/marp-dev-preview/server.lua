@@ -228,7 +228,7 @@ function M.start()
   local count = 0
   timer:start(500, 500, vim.schedule_wrap(function()
       start_server_timer_callback(timer, filename, count, port)
-  end)
+  end))
 
   vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 end
