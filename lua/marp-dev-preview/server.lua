@@ -178,7 +178,7 @@ function M.start()
   local port = config.options.port + math.random(1, 1000)
   local server_args = { "marp-dev-preview", "--port", tostring(port) }
   if theme_dir then
-    table.insert(serve_args, "--theme-dir")
+    table.insert(server_args, "--theme-dir")
     table.insert(server_args, "filename")
   end
 
