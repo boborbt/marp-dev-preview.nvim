@@ -128,7 +128,25 @@ function M.open_browser(port)
   vim.notify("Opening browser at http://localhost:" .. port,
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
-  vim.cmd("Open http://localhost:" .. port)
+
+  local url ="http://localhost:" .. port
+  local uname = vim.loop.os_uname().sysname
+  local open_cmd = nil
+
+  if uname == "Darwin" then
+    open_cmd = "open"
+  elseif uname == "Linux" then
+    open_cmd = "xdg-open"
+  elseif uname:match("Windows") then
+    open_cmd = "start"
+  else
+    vim.notify("Unsupported OS: " .. uname,
+      vim.log.levels.ERROR,
+      { title = "Marp Dev Preview" })
+    return
+  end
+
+  os.execute(string.format('%s "%s"', open_cmd, url))
 end
 
 local function start_server_timer_callback(timer, filename, count, port)
