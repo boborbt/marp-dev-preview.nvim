@@ -175,8 +175,12 @@ local function start_server_timer_callback(timer, filename, count, port)
   end
 
   M.open_browser(port)
-  timer:stop()
-  timer:close()
+
+  if not timer:is_closing() then
+    vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
+    timer:stop()
+    timer:close()
+  end
 end
 
 -- Start the marp server for the current buffer
