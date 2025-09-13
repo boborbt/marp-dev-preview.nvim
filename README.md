@@ -4,7 +4,7 @@ Seamlessly integrate [Marp Dev Preview](https://github.com/boborbt/marp-dev-prev
 
 ### Warning
 
-Currently the plugin **has been only tested on MacOS**. Please open an issue if you encounter any problems on other operating systems, but keep in mind that I don't have access to windows machines (but I'm happy to review and merge PRs fixing issues on windows).
+Currently the plugin **has been mainly tested on MacOS and Linux**. Please open an issue if you encounter any problems on other operating systems, but keep in mind that I don't have access to windows machines (but I'm happy to review and merge PRs fixing issues on windows).
 
 ## Features
 
@@ -38,7 +38,7 @@ use {
   end
 }
 ```
-The plugin provides experimental support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up. And use MarpDevPreviewStartAttach command to connect your marp buffer with the server.
+The plugin provides support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up. And use MarpDevPreviewStartAttach command to connect your marp buffer with the server.
 
 To start the server and the live sync, run the following command in NeoVim:
 
@@ -85,7 +85,7 @@ You can customize the plugin by passing options to the `setup` function. Here ar
 `live_sync_start_timeout`       | number  | `3000`  | Timeout in milliseconds for trying to start live sync. If the server is not running or not reachable within this time, an error will be shown.
 `live_sync_waiting_interval`  | number  | `100`   | Interval in milliseconds between two attempts to check if the server is reachable when starting live sync.
  `port`              | number  | `8080`  | *base* port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview). The plugin will try to connect to a random port computed as `port + n` where `n` is a random number between 0 and 1000. This is to avoid port conflicts if you run multiple instances of NeoVim or if you want to connect to different presentations.
-`theme_set`        | array | {}   | If set, it will be passed to the Marp Dev Preview server as the `--theme-set` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the position of the marp file being edited.
+`theme_set`        | array | {}   | If set, it will be passed to the Marp Dev Preview server as the `--theme-set` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the current working directory.
 
 Defaults:
 
@@ -95,15 +95,17 @@ require('marp-dev-preview').setup({
   server_cmds_timeout = 1000,
 
   -- timeout for server startup in milliseconds
-  server_start_timeout = 3000,
+  browser_start_timeout = 3000,
+  browser_start_waiting_interval = 500,
 :
   -- timeout for live sync start in milliseconds
   live_sync_start_timeout = 3000,
+  live_sync_waiting_interval = 500,
 
   -- base port for the marp-dev-preview server
   port = 8080,
 
-  -- directory containing custom themes, relative to the marp file being edited
+  -- directory containing custom themes, relative to current directory
   theme_set = nil
 })
 ```
@@ -120,12 +122,9 @@ require("lualine").setup({
         ...
       },
       sections = {
-        lualine_a = { "mode" },
-        lualine_b = { "branch", "diff", "diagnostics" },
-        lualine_c = { "filename", require('marp-dev-preview').statusline },
-        lualine_x = { "encoding", "fileformat", "filetype" },
-        lualine_y = { "progress" },
-        lualine_z = { "location" },
+        ...
+        lualine_c = { ..., require('marp-dev-preview').statusline, ... },
+        ...
       },
       ...
 ```
