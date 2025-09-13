@@ -95,15 +95,13 @@ function M.stop(filename)
     return
   end
 
-  -- this should close all pipes
-  server_job:shutdown(0, 3)
-
-  -- and since the process won't die
+  -- cannot use server_job:shutdown() because
+  -- we need to kll the whole process group
   vim.notify("Killing the server with cmd: kill " .. server_job.pid,
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  local _handle = io.popen("kill " .. server_job.pid)
+  local _handle = io.popen("kill -" .. server_job.pid)
   if _handle ~= nil then
     _handle:close()
   end
@@ -182,6 +180,20 @@ local function try_open_browser(filename, port)
   return true
 end
 
+local function portable_group_spawn(cmd, args)
+  local uname = vim.loop.os_uname()
+  local is_mac = uname.sysname == "Darwin"
+  local is_linux = uname.sysname == "Linux"
+
+  if is_linux then
+    return "setsid", vim.tbl_flatten({ cmd, args })
+  elseif is_mac then
+    return cmd, args
+  else
+    error("Unsupported OS for portable process group spawning")
+  end
+end
+
 -- Start the marp server for the current buffer
 -- @return nil
 function M.start()
@@ -197,7 +209,7 @@ function M.start()
   local filename = vim.api.nvim_buf_get_name(0)
   -- add some random number to the port to avoid conflicts
   local port = config.options.port + math.random(1, 1000)
-  local server_args = { "marp-dev-preview", "--port", tostring(port) }
+  local server_args = { "npx", "marp-dev-preview", "--port", tostring(port) }
 
   if theme_set and #theme_set > 0 then
     table.insert(server_args, "--theme-set")
@@ -209,12 +221,15 @@ function M.start()
   table.insert(server_args, "-m")
   table.insert(server_args, filename)
 
+  local cmd = "npx"
+  cmd, server_args = portable_group_spawn(cmd, server_args)
+
   vim.notify("Starting server with args: npx " .. table.concat(server_args, " "),
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
   local server_job = Job:new({
-    command = "npx",
+    command = cmd,
     args = server_args,
     on_stdout = function(_, data)
       if data then
