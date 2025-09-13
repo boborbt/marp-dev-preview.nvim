@@ -101,7 +101,7 @@ function M.stop(filename)
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  local _handle = io.popen("kill -" .. server_job.pid)
+  local _handle = io.popen("kill -15 -" .. server_job.pid)
   if _handle ~= nil then
     _handle:close()
   end
