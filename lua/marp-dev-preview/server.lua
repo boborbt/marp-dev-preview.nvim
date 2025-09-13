@@ -99,6 +99,10 @@ function M.stop(filename)
   server_job:shutdown(0, 3)
 
   -- and since the process won't die
+  vim.notify("Killing the server with cmd: kill " .. server_job.pid,
+    vim.log.levels.DEBUG,
+    { title = "Marp Dev Preview" })
+
   local _handle = io.popen("kill " .. server_job.pid)
   if _handle ~= nil then
     _handle:close()
@@ -149,7 +153,9 @@ function M.open_browser(port)
     return
   end
 
-  os.execute(string.format('%s "%s"', open_cmd, url))
+  local cmd_str = string.format('%s "%s"', open_cmd, url)
+  local open_out = vim.fn.system(cmd_str)
+  vim.notify(open_out, vim.log.levels.DEBUG)
 end
 
 -- returns true if timer should stop, false otherwise
