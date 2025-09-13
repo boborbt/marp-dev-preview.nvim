@@ -171,7 +171,7 @@ local function try_open_browser(filename, port)
 
   vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
 
-  pcall(M.open_browser(port))
+  pcall(M.open_browser, port)
 
   return true
 end
