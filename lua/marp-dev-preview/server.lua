@@ -74,6 +74,39 @@ function M.attach(port)
   return true
 end
 
+local function kill_job(server_job, title)
+  local uname = vim.loop.os_uname().sysname
+  local pid = tostring(server_job.pid)
+  local kill_cmd
+
+  if uname == "Linux" then
+    -- Negative PID kills the process group started with setsid
+    kill_cmd = { 'kill', '-TERM', '-' .. pid }
+  else
+    -- macOS: kill the process directly
+    kill_cmd = { 'kill', '-TERM', pid }
+  end
+
+  local killstring = table.concat(kill_cmd, ' ')
+  vim.notify("Kill command: " .. killstring,
+    vim.log.levels.DEBUG,
+    { title = title or "Process Kill" })
+
+  local kill_out = vim.fn.systemlist(kill_cmd)
+  local kill_status = vim.v.shell_error
+
+  if kill_status ~= 0 then
+    vim.notify("Kill failed (exit code " .. kill_status .. "): " .. table.concat(kill_out, '\n'),
+      vim.log.levels.ERROR,
+      { title = title or "Process Kill" })
+  else
+    vim.notify("Kill output: " .. table.concat(kill_out, '\n'),
+      vim.log.levels.DEBUG,
+      { title = title or "Process Kill" })
+  end
+end
+
+
 -- Stop the server associated with the current buffer or the given filename
 -- If no filename is given, it defaults to the current buffer's filename
 -- This function attempts to gracefully shut down the server process
@@ -98,26 +131,7 @@ function M.stop(filename)
   -- cannot use server_job:shutdown() because
   -- we need to kll the whole process group
 
-  -- Use os.execute for portability and error handling
-  local kill_cmd = { 'kill', '-15', tostring(server_job.pid) }
-  local killstring = table.concat(kill_cmd, ' ')
-  vim.notify("Kill command: " .. killstring,
-    vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
-
-  -- Use vim.fn.systemlist for better output handling
-  local kill_out = vim.fn.systemlist(kill_cmd)
-  local kill_status = vim.v.shell_error
-
-  if kill_status ~= 0 then
-    vim.notify("Kill failed (exit code " .. kill_status .. "): " .. table.concat(kill_out, '\n'),
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
-  else
-    vim.notify("Kill output: " .. table.concat(kill_out, '\n'),
-      vim.log.levels.DEBUG,
-      { title = "Marp Dev Preview" })
-  end
+  kill_job(server_job, "Marp Dev Preview")
 end
 
 -- Stop all running server_jobs
