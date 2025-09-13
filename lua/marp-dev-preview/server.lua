@@ -1,4 +1,5 @@
 utils = require("marp-dev-preview.utils")
+config = require("marp-dev-preview.config")
 
 local M = {
   server_jobs = {}
@@ -247,7 +248,7 @@ function M.start()
   server_job.port = port
   server_job:start()
 
-  utils.attempt_with_timeout(config.open_browser_wait_interval, config.options.open_browser_timeout, function()
+  utils.attempt_with_timeout(config.options.open_browser_wait_interval, config.options.open_browser_timeout, function()
       try_open_browser(filename, port)
   end)
 
