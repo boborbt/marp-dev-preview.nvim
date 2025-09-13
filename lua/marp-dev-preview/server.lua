@@ -101,10 +101,19 @@ function M.stop(filename)
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  local _handle = io.popen("kill -15 -" .. server_job.pid)
-  if _handle ~= nil then
-    _handle:close()
-  end
+  local killstring = "kill -9 -" .. server_job.pid
+  vim.notify("Kill command: " .. killstring,
+    vim.log.levels.DEBUG,
+    { title = "Marp Dev Preview" })
+
+  local kill_out = vim.fn.system(killstring)
+
+  vim.notify("Kill output: " .. kill_out,
+    vim.log.levels.DEBUG,
+    { title = "Marp Dev Preview" })
+
+  vim.input("Press Enter to continue...")
+
 end
 
 -- Stop all running server_jobs
