@@ -32,28 +32,13 @@ end
 M.start_server_and_live_sync = function()
   M.start_server()
 
-  local count = 0
-
-  timer = vim.loop.new_timer()
-  timer:start(500, 500, vim.schedule_wrap(function()
-    count = count + 500
-    if count > config.options.live_sync_start_timeout then
-      vim.notify("Server not started after ".. config.options.live_sync_start_timeout .. "ms, giving up",
-        vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-
-      if not timer:is_closing() then
-        timer:stop()
-        timer:close()
-      end
-      return
-    end
-
+  utils.attempt_with_timeout(config.live_sync_wait_interval, config.live_sync_start_timeout, function()
     server_live, status = server.is_running()
     if not server_live and status == "Check" then
       -- still starting up
       vim.notify("Waiting for server to start...",
         vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
-      return
+      return false
     end
 
     if server_live then
@@ -66,13 +51,8 @@ M.start_server_and_live_sync = function()
         vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     end
 
-    -- server is either running or failed to start
-
-    if not timer:is_closing() then
-      timer:stop()
-      timer:close()
-    end
-  end))
+    return true
+  end)
 end
 
 

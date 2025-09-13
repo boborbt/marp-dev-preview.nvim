@@ -70,4 +70,21 @@ M.buf_goto_slide = function(slide_number)
   end
 end
 
+M.attempt_with_timeout = function(waittime, timeout, fn)
+  local timer = vim.loop.new_timer()
+  local stop = false
+  timer:start(waittime, waittime, function()
+    timeout = timeout - waittime
+    stop = stop or timeout <= 0
+
+    if stop then
+      timer:stop()
+      timer:close()
+      return
+    end
+
+    stop = fn() or stop
+  end)
+end
+
 return M

@@ -18,7 +18,7 @@ Currently the plugin **has been only tested on MacOS**. Please open an issue if 
 ---
 
 <center>
-  
+
   ![mdp-live-demo](https://github.com/user-attachments/assets/47c8d593-1ae6-4632-a0a8-cd6ddb5f5efa)
 
 </center>
@@ -79,9 +79,11 @@ You can customize the plugin by passing options to the `setup` function. Here ar
 
  Option              | Type    | Default | Description
 ---------------------|---------|---------|-----------------------------------------------------------------------------------------------
- `server_start_timeout`           | number  | `3000`  | Timeout in milliseconds for trying to establish a connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server.
+ `browser_start_timeout`           | number  | `3000`  | Timeout in milliseconds for trying to establish a connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server before giving up opening the browser.
+ `browser_start_waiting_interval` | number  | `100`   | Interval in milliseconds between two attempts to check if the server is reachable when opening the browser.
 `server_cmds_timeout`            | number  | `1000`  | Timeout in milliseconds for server operations.
 `live_sync_start_timeout`       | number  | `3000`  | Timeout in milliseconds for trying to start live sync. If the server is not running or not reachable within this time, an error will be shown.
+`live_sync_waiting_interval`  | number  | `100`   | Interval in milliseconds between two attempts to check if the server is reachable when starting live sync.
  `port`              | number  | `8080`  | *base* port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview). The plugin will try to connect to a random port computed as `port + n` where `n` is a random number between 0 and 1000. This is to avoid port conflicts if you run multiple instances of NeoVim or if you want to connect to different presentations.
 `theme_set`        | array | {}   | If set, it will be passed to the Marp Dev Preview server as the `--theme-set` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the position of the marp file being edited.
 

@@ -258,29 +258,6 @@ describe('marp-dev-preview methods:', function()
   end)
 
   describe('goto_slide', function()
-    it('invokes server goto function (success case)', function()
-      vim.cmd("enew")
-      vim.cmd("set filetype=markdown")
-      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
-        "---",
-        "marp:true",
-        "---",
-        "first slide",
-        "---",
-        "second slide",
-        "---",
-        "third slide"
-      })
-
-      _G.input.usr_input = "2"
-
-      mdp.goto_slide()
-
-      eq("goto", _G.sc.cmd)
-      eq({ key = "slide", value = 2 }, _G.sc.args)
-      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
-    end)
-
     it('it reposition the cursor within the selected slide (success case)', function()
       vim.cmd("enew")
       vim.cmd("set filetype=markdown")

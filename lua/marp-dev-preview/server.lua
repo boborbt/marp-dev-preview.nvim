@@ -1,3 +1,5 @@
+utils = require("marp-dev-preview.utils")
+
 local M = {
   server_jobs = {}
 }
@@ -149,38 +151,28 @@ function M.open_browser(port)
   os.execute(string.format('%s "%s"', open_cmd, url))
 end
 
-local function start_server_timer_callback(timer, filename, count, port)
+-- returns true if timer should stop, false otherwise
+local function try_open_browser(filename, port)
   if M.server_jobs[filename] == nil then
     vim.notify("Server job no longer exists", vim.log.levels.WARN, { title = "Marp Dev Preview" })
-    timer:stop()
-    timer:close()
-    return
-  end
-  count = count + 500
-  if count > config.options.server_start_timeout then
-    vim.notify("Server did not start in time, please check for errors", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-    timer:stop()
-    timer:close()
-    return
+    return true
   end
 
   if not port then
-    vim.notify("Port not assigned yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
-    return
+    vim.notify("Port not assigned.", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    return true
   end
 
   if not M.check_server(port) then
     vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
-    return
+    return false
   end
 
-  M.open_browser(port)
+  vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
 
-  if not timer:is_closing() then
-    vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
-    timer:stop()
-    timer:close()
-  end
+  pcall(M.open_browser(port))
+
+  return true
 end
 
 -- Start the marp server for the current buffer
@@ -251,16 +243,13 @@ function M.start()
     end,
   })
 
+  M.server_jobs[filename] = server_job
   server_job.port = port
   server_job:start()
 
-  M.server_jobs[filename] = server_job
-
-  local timer = vim.loop.new_timer()
-  local count = 0
-  timer:start(500, 500, vim.schedule_wrap(function()
-      start_server_timer_callback(timer, filename, count, port)
-  end))
+  utils.attempt_with_timeout(500, 3000, function()
+      try_open_browser(filename, port)
+  end)
 
   vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 end
