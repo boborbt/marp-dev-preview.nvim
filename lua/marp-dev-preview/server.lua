@@ -112,8 +112,8 @@ function M.stop(filename)
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  vim.input("Press Enter to continue...")
-
+  -- wait for enter
+  vim.fn.input("Press Enter to continue...")
 end
 
 -- Stop all running server_jobs
