@@ -1,4 +1,4 @@
-/inter-- TODO:
+-- TODO:
 -- [long term] Start the server from within Neovim if not running
 
 local M = {}
