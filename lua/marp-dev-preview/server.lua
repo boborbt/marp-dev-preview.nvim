@@ -97,23 +97,27 @@ function M.stop(filename)
 
   -- cannot use server_job:shutdown() because
   -- we need to kll the whole process group
-  vim.notify("Killing the server with cmd: kill " .. server_job.pid,
-    vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
 
-  local killstring = "kill -9 -" .. server_job.pid
+  -- Use os.execute for portability and error handling
+  local kill_cmd = { 'kill', '-15', tostring(server_job.pid) }
+  local killstring = table.concat(kill_cmd, ' ')
   vim.notify("Kill command: " .. killstring,
     vim.log.levels.DEBUG,
     { title = "Marp Dev Preview" })
 
-  local kill_out = vim.fn.system(killstring)
+  -- Use vim.fn.systemlist for better output handling
+  local kill_out = vim.fn.systemlist(kill_cmd)
+  local kill_status = vim.v.shell_error
 
-  vim.notify("Kill output: " .. kill_out,
-    vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
-
-  -- wait for enter
-  vim.fn.input("Press Enter to continue...")
+  if kill_status ~= 0 then
+    vim.notify("Kill failed (exit code " .. kill_status .. "): " .. table.concat(kill_out, '\n'),
+      vim.log.levels.ERROR,
+      { title = "Marp Dev Preview" })
+  else
+    vim.notify("Kill output: " .. table.concat(kill_out, '\n'),
+      vim.log.levels.DEBUG,
+      { title = "Marp Dev Preview" })
+  end
 end
 
 -- Stop all running server_jobs
