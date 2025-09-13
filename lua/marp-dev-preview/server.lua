@@ -159,21 +159,29 @@ end
 -- returns true if timer should stop, false otherwise
 local function try_open_browser(filename, port)
   if M.server_jobs[filename] == nil then
-    vim.notify("Server job no longer exists", vim.log.levels.WARN, { title = "Marp Dev Preview" })
+    vim.notify("Server job no longer exists",
+      vim.log.levels.WARN,
+      { title = "Marp Dev Preview" })
     return true
   end
 
   if not port then
-    vim.notify("Port not assigned.", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    vim.notify("Port not assigned.",
+      vim.log.levels.ERROR,
+      { title = "Marp Dev Preview" })
     return true
   end
 
   if not M.check_server(port) then
-    vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+    vim.notify("Server not responding yet, waiting...",
+      vim.log.levels.DEBUG,
+      { title = "Marp Dev Preview" })
     return false
   end
 
-  vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
+  vim.notify("Server is up and running!",
+    vim.log.levels.INFO,
+    { title = "Marp Dev Preview" })
 
   pcall(M.open_browser, port)
 
@@ -209,7 +217,7 @@ function M.start()
   local filename = vim.api.nvim_buf_get_name(0)
   -- add some random number to the port to avoid conflicts
   local port = config.options.port + math.random(1, 1000)
-  local server_args = { "npx", "marp-dev-preview", "--port", tostring(port) }
+  local server_args = { "marp-dev-preview", "--port", tostring(port) }
 
   if theme_set and #theme_set > 0 then
     table.insert(server_args, "--theme-set")
