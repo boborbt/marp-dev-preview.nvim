@@ -247,7 +247,7 @@ function M.start()
   server_job.port = port
   server_job:start()
 
-  utils.attempt_with_timeout(500, 3000, function()
+  utils.attempt_with_timeout(config.open_browser_wait_interval, config.options.open_browser_timeout, function()
       try_open_browser(filename, port)
   end)
 

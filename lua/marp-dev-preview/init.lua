@@ -1,4 +1,4 @@
--- TODO:
+/inter-- TODO:
 -- [long term] Start the server from within Neovim if not running
 
 local M = {}
@@ -32,7 +32,7 @@ end
 M.start_server_and_live_sync = function()
   M.start_server()
 
-  utils.attempt_with_timeout(config.live_sync_wait_interval, config.live_sync_start_timeout, function()
+  utils.attempt_with_timeout(config.options.live_sync_wait_interval, config.options.live_sync_start_timeout, function()
     server_live, status = server.is_running()
     if not server_live and status == "Check" then
       -- still starting up
