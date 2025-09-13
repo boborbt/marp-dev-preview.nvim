@@ -83,7 +83,9 @@ M.attempt_with_timeout = function(waittime, timeout, fn)
       return
     end
 
-    stop = fn() or stop
+    vim.schedule(function()
+      stop = stop or fn()
+    end)
   end)
 end
 
