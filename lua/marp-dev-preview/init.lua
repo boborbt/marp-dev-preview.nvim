@@ -30,7 +30,7 @@ M.setup = function(user_config)
 end
 
 M.start_server_and_live_sync = function()
-  M.start_server()
+  server.start()
 
   utils.attempt_with_timeout(config.options.live_sync_wait_interval, config.options.live_sync_start_timeout, function()
     server_live, status = server.is_running()
@@ -98,7 +98,11 @@ M.goto_current_slide = function()
 end
 
 M.start_server = function()
-  server.start()
+  if config.options.live_sync then
+    M.start_server_and_live_sync()
+  else
+    server.start()
+  end
 end
 
 M.stop_server = function()
