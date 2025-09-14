@@ -20,6 +20,10 @@ function M.setup()
         return
       end
 
+      if not server.is_running() then
+        return
+      end
+
       marp.set_live_sync(config.options.live_sync)
     end
   })

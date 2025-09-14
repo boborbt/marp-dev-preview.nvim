@@ -79,6 +79,7 @@ You can customize the plugin by passing options to the `setup` function. Here ar
 
  Option              | Type    | Default | Description
 ---------------------|---------|---------|-----------------------------------------------------------------------------------------------
+| `live_sync`        | boolean | `false` | If `true`, live sync will be started automatically when starting the server.
  `browser_start_timeout`           | number  | `3000`  | Timeout in milliseconds for trying to establish a connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview) server before giving up opening the browser.
  `browser_start_waiting_interval` | number  | `100`   | Interval in milliseconds between two attempts to check if the server is reachable when opening the browser.
 `server_cmds_timeout`            | number  | `1000`  | Timeout in milliseconds for server operations.
@@ -91,6 +92,7 @@ Defaults:
 
 ```lua
 require('marp-dev-preview').setup({
+  live_sync = true,
   -- timeout for server operations in milliseconds
   server_cmds_timeout = 1000,
 
