@@ -32,29 +32,32 @@ end
 M.start_server_and_live_sync = function()
   server.start()
 
-  utils.attempt_with_timeout(config.options.live_sync_wait_interval, config.options.live_sync_start_timeout, function()
-    server_live, status = server.is_running()
-    if not server_live and status == "Check" then
-      -- still starting up
-      vim.notify("Waiting for server to start...",
-        vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
-      return false
-    end
+  -- Starting live sync after server is confirmed to be running
+  utils.attempt_with_timeout(
+    config.options.live_sync_wait_interval,
+    config.options.live_sync_start_timeout,
+    function()
+      server_live, status = server.is_running()
+      if not server_live and status == "Check" then
+        -- still starting up
+        vim.notify("Waiting for server to start...",
+          vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+        return false
+      end
 
-    if server_live then
-      vim.notify("Server started, enabling live sync",
-        vim.log.levels.INFO, { title = "Marp Dev Preview" })
-      M.set_live_sync(true)
-      M.goto_current_slide()
-    else
-      vim.notify("Server failed to start: " .. tostring(status),
-        vim.log.levels.ERROR, { title = "Marp Dev Preview" })
-    end
+      if server_live then
+        vim.notify("Server started, enabling live sync",
+          vim.log.levels.INFO, { title = "Marp Dev Preview" })
+        M.set_live_sync(true)
+        M.goto_current_slide()
+      else
+        vim.notify("Server failed to start: " .. tostring(status),
+          vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+      end
 
-    return true
-  end)
+      return true
+    end)
 end
-
 
 M.goto_slide = function()
   local input = vim.fn.input("Slide number: ")
