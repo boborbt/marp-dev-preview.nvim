@@ -54,11 +54,10 @@ M.buf_goto_slide = function(slide_number)
     return
   end
 
-  local cur_line = vim.api.nvim_win_get_cursor(0)[1]
   local target_line = nil
   local current_slide = -1
   for lineno, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line.sub(line, 1, 3) == "---" then
+    if line:match "^[ \t]*---[ \t]*$" then
       current_slide = current_slide + 1
       if current_slide == slide_number then
         target_line = lineno + 1
