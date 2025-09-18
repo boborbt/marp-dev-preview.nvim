@@ -37,7 +37,7 @@ M.start_server_and_live_sync = function()
     config.options.live_sync_wait_interval,
     config.options.live_sync_start_timeout,
     function()
-      server_live, status = server.is_running()
+      local server_live, status = server.is_running()
       if not server_live and status == "Check" then
         -- still starting up
         vim.notify("Waiting for server to start...",

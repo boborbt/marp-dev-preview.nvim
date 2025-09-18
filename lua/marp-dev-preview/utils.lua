@@ -28,7 +28,11 @@ M.current_slide_number = function()
   local slide_number = -1
   local cur_line = vim.api.nvim_win_get_cursor(0)[1]
   for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, cur_line, false)) do
-    if line.sub(line, 1, 3) == "---" then
+    --  if line.sub(line, 1, 3) == "---" then
+    -- we cannot do as above, since we wanto to matcb
+    -- only lines that have no other non blank character
+    -- on the same line
+    if line:match "^[ \t]*---[ \t]*$" then
       slide_number = slide_number + 1
     end
   end
@@ -38,7 +42,7 @@ end
 M.num_slides = function()
   local slide_number = -1
   for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line.sub(line, 1, 3) == "---" then
+    if line:match "^[ \t]*---[ \t]*$" then
       slide_number = slide_number + 1
     end
   end

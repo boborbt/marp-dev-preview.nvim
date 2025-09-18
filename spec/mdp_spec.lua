@@ -191,6 +191,11 @@ describe('marp-dev-preview methods:', function()
       local n = utils.num_slides()
       eq(3, n)
     end)
+    it('does not get confused if a line starts with --- but contains other stuff', function()
+      setup_marp_file("---\nmarp: true\n---\nfirst slide\n--- some other stuff\n---\nsecond slide\n---\nthird slide")
+      local n = utils.num_slides()
+      eq(3, n)
+    end)
   end)
 
 
@@ -254,6 +259,26 @@ describe('marp-dev-preview methods:', function()
       vim.cmd("8")
 
       eq(3, utils.current_slide_number())
+    end)
+
+    it('does not get confused if a line starts with --- but contains other stuff', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "--- some other stuff",
+        "still first slide",
+        "---",
+        "second slide",
+        "---",
+        "third slide"
+      })
+      vim.cmd("7")
+
+      eq(2, utils.current_slide_number())
     end)
   end)
 
