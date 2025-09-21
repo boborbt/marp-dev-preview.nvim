@@ -32,7 +32,7 @@ M.current_slide_number = function()
     -- we cannot do as above, since we wanto to matcb
     -- only lines that have no other non blank character
     -- on the same line
-    if line:match "^[ \t]*---[ \t]*$" then
+    if line:match "^%s*%-%-%-%s*$" then
       slide_number = slide_number + 1
     end
   end
@@ -42,7 +42,7 @@ end
 M.num_slides = function()
   local slide_number = -1
   for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line:match "^[ \t]*---[ \t]*$" then
+    if line:match "^%s*%-%-%-%s*$" then
       slide_number = slide_number + 1
     end
   end
@@ -57,7 +57,7 @@ M.buf_goto_slide = function(slide_number)
   local target_line = nil
   local current_slide = -1
   for lineno, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line:match "^[ \t]*---[ \t]*$" then
+    if line:match "^%s*%-%-%-%s*$" then
       current_slide = current_slide + 1
       if current_slide == slide_number then
         target_line = lineno + 1
