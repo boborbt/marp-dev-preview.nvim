@@ -59,6 +59,25 @@ M.start_server_and_live_sync = function()
     end)
 end
 
+M.open_in_browser = function()
+  if not server.is_running() then
+    vim.notify("Server is not running",
+      vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    return
+  end
+
+  local server_job, error = server.get_server_job()
+  if not server_job then
+    vim.notify("Failed to get server job: " .. tostring(error),
+      vim.log.levels.ERROR, { title = "Marp Dev Preview" })
+    return
+  end
+
+  local port = server_job.port
+  server.open_browser(port)
+end
+
+
 M.goto_slide = function()
   local input = vim.fn.input("Slide number: ")
   local n = tonumber(input)

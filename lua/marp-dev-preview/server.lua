@@ -27,6 +27,22 @@ function M.is_running()
   return chk == "200", "Check"
 end
 
+function M.get_server_job()
+  local filename = vim.api.nvim_buf_get_name(0)
+  if filename == nil or filename == "" then
+    return nil, "NoFile"
+  end
+
+  local server_job = M.server_jobs[filename]
+
+  if not server_job then
+    return nil, "NoJob"
+  end
+
+  return server_job, "Found"
+end
+
+
 -- Check if the server is running by sending a request to the given Port
 -- Returns the HTTP status code if running, nil otherwise
 -- @param port string The port to check, defaults to "8080" if not provided
