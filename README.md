@@ -14,6 +14,8 @@ Currently the plugin **has been mainly tested on MacOS and Linux**. Please open 
   - Keep your Markdown slide position synced with the preview.  (*One-way sync: browser → NeoVim not supported.*)
 - **Goto Slide** – Jump to a specific slide. Temporarily disables auto-sync.
 - **Next/Prev Slides** - provides commands to navigate to the next/previous slide in your markdown file.
+- **Open Preview in Browser** - Automatically opens the Marp Dev Preview in your default web browser when the server starts.
+- **Lualine Integration** - Displays live sync status in your status line.
 
 ---
 
@@ -54,6 +56,7 @@ Other commands you might find useful:
 :MarpDevPreviewStartLiveSync
 :MarpDevPreviewStopLiveSync
 :MarpDevPreviewToggleLiveSync
+:MarpDevPreviewOpenBrowser
 :MarpDevPreviewGoto
 :MarpDevPreviewNextSlide
 :MarpDevPreviewPrevSlide
@@ -66,6 +69,7 @@ Other commands you might find useful:
 - **MarpDevPreviewStartLiveSync** enables live sync between your markdown file and the preview, it will not work if the server is not running. You can provide as an argument the port number on which the server is running (not necessary if you started the server from within NeoVim).
 - **MarpDevPreviewStopLiveSync** disables live sync.
 - **MarpDevPreviewToggleLiveSync** toggles live sync on or off.
+- **MarpDevPreviewOpenBrowser** opens a browser on the preview page (if the server is running).
 - **MarpDevPreviewGoto** allows you to jump to a specific slide within your markdown file (if live sync is enabled, the preview will update accordingly).
 - **MarpDevPreviewNextSlide** jumps to the next slide in your markdown file (if live sync is enabled, the preview will update accordingly).
 - **MarpDevPreviewPrevSlide** jumps to the previous slide in your markdown file (if live sync is enabled, the preview will update accordingly).
@@ -189,6 +193,11 @@ return {
       "<leader>mX",
       "<cmd>MarpDevPreviewStopLiveSync<cr><cmd>MarpDevPreviewStopServer<cr>",
       desc = "Marp: stop live sync and server",
+      mode = "n"
+    },
+    {"<leader>mb",
+      "<cmd>MarpDevPreviewOpenBrowser<cr>",
+      desc = "Marp: open browser",
       mode = "n"
     },
     {
