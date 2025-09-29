@@ -13,7 +13,7 @@ M.is_marp = function()
   end
 
   for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, 20, false)) do
-    if line:match "^[ \t]*marp[ \t]*:[ \t]*true[ \t]*$" then
+    if line:match "^%s*marp%s*:%s*true%s*$" then
       state.buftypes[bufnr] = true
       return true
     end

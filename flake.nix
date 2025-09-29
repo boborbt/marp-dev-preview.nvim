@@ -47,6 +47,8 @@
             neovim
             luajit
             luarocks
+            luajitPackages.busted
+            luajitPackages.nlua
             stylua
           ];
 

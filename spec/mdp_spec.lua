@@ -79,6 +79,8 @@ describe('marp-dev-preview methods:', function()
     file:close()
 
     vim.cmd("edit test.md")
+
+    vim.bo.filetype = "markdown"
   end
 
   function setup_md_file()
@@ -155,7 +157,7 @@ describe('marp-dev-preview methods:', function()
     it('returns true on marp with style code', function()
       str = table.concat({
         "---\n",
-        "marp:true\n",
+        "marp: true\n",
         "theme: uncover-bb\n",
         "paginate: true\n",
         "---\n",
@@ -173,8 +175,8 @@ describe('marp-dev-preview methods:', function()
         "margin-right: 30px;\n",
         "}\n" })
 
-
       setup_marp_file(str)
+
       assert.is.True(utils.is_marp())
     end)
 
