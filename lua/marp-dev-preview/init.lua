@@ -75,7 +75,7 @@ M.open_in_browser = function()
 
   local port = server_job.port
   server.open_browser(port)
-  M.goto_current_slide(force=true)
+  M.goto_current_slide(true)
 end
 
 
@@ -110,7 +110,7 @@ end
 
 M._last_slide_number = nil
 
-M.goto_current_slide = function(force=false)
+M.goto_current_slide = function(force)
   local slide_number = utils.current_slide_number()
   if not force and slide_number == M._last_slide_number then
     return true, nil
