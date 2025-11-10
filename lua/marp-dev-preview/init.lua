@@ -75,6 +75,7 @@ M.open_in_browser = function()
 
   local port = server_job.port
   server.open_browser(port)
+  M.goto_current_slide()
 end
 
 
