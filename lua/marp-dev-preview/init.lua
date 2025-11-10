@@ -75,7 +75,6 @@ M.open_in_browser = function()
 
   local port = server_job.port
   server.open_browser(port)
-  M.goto_current_slide()
 end
 
 
@@ -117,6 +116,7 @@ M.goto_current_slide = function()
   end
 
   M._last_slide_number = slide_number
+
   return server.goto_slide(slide_number)
 end
 
