@@ -49,6 +49,100 @@ M.num_slides = function()
   return slide_number
 end
 
+-- Recursively walk a tree-sitter node
+local function traverse(node, fn)
+  fn(node)
+  for i = 0, node:child_count() - 1 do
+    traverse(node:child(i), fn)
+  end
+end
+
+-- Check if Tree-sitter supports this buffer
+local function treesitter_available(bufnr)
+  local ft = vim.bo[bufnr].filetype
+  local ok = pcall(vim.treesitter.language.get_lang, ft)
+  return ok
+end
+
+-- Check whether a row contains a non-comment, non-whitespace char
+local function row_has_code(bufnr, row)
+  local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1]
+
+  if not line or line:match("^%s*$") then
+    return false
+  end
+
+  -- If Tree-sitter is not available: skip analysis entirely
+  if not treesitter_available(bufnr) then
+    return true
+  end
+
+  -- Tree-sitter path
+  local ft = vim.bo[bufnr].filetype
+  local parser = vim.treesitter.get_parser(bufnr, ft)
+  if not parser then
+    return true  -- no parser → treat as having code
+  end
+
+  local tree = parser:parse()[1]
+  if not tree then
+    return true
+  end
+
+  local root = tree:root()
+
+  -- Collect comment ranges on this row
+  local comment_ranges = {}
+  traverse(root, function(node)
+    if node:type() == "comment" then
+      local sr, sc, er, ec = node:range()
+      if sr <= row and er >= row then
+        table.insert(comment_ranges, { sc, ec })
+      end
+    end
+  end)
+
+  local function is_commented(col)
+    for _, r in ipairs(comment_ranges) do
+      if col >= r[1] and col < r[2] then
+        return true
+      end
+    end
+    return false
+  end
+
+  -- Check visible characters
+  for col = 0, #line - 1 do
+    local ch = line:sub(col + 1, col + 1)
+    if ch:match("%S") and not is_commented(col) then
+      return true
+    end
+  end
+
+  return false
+end
+
+--- Find the first row at or after start_row containing code.
+--- If Tree-sitter is not available, returns start_row immediately.
+local function find_first_code_row(start_row, bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+  -- If TS unavailable: simplified behavior
+  if not treesitter_available(bufnr) then
+    return start_row
+  end
+
+  local last = vim.api.nvim_buf_line_count(bufnr) - 1
+  for row = start_row, last do
+    if row_has_code(bufnr, row) then
+      return row
+    end
+  end
+
+  return nil
+end
+
+
 M.buf_goto_slide = function(slide_number)
   if not slide_number then
     return
@@ -67,6 +161,7 @@ M.buf_goto_slide = function(slide_number)
   end
 
   if target_line then
+    target_line = find_first_code_row(target_line - 1, 0) or target_line
     vim.api.nvim_win_set_cursor(0, { target_line, 0 })
   else
     vim.notify("Slide number " .. slide_number .. " not found", vim.log.levels.ERROR)
