@@ -83,6 +83,8 @@ local function find_first_code_row(bufnr, start_line)
     end
     current = current + 1
   end
+
+  return start_line
 end
 
 M.buf_goto_slide = function(slide_number)
@@ -103,7 +105,7 @@ M.buf_goto_slide = function(slide_number)
   end
 
   if target_line then
-    target_line = find_first_code_row(target_line - 1, 0) or target_line
+    target_line = find_first_code_row(0, target_line)
     vim.api.nvim_win_set_cursor(0, { target_line, 0 })
   else
     vim.notify("Slide number " .. slide_number .. " not found", vim.log.levels.ERROR)
