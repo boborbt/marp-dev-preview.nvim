@@ -1,6 +1,3 @@
--- TODO:
--- [long term] Start the server from within Neovim if not running
-
 local M = {}
 
 local config = require("marp-dev-preview.config")

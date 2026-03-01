@@ -260,7 +260,10 @@ function M.start()
   local filename = vim.api.nvim_buf_get_name(0)
   -- add some random number to the port to avoid conflicts
   local port = config.options.port + math.random(1, 1000)
-  local server_args = { "marp-dev-preview", "--port", tostring(port) }
+  local server_args = {
+    "marp-dev-preview",
+    "--port",
+    tostring(port) }
 
   if theme_set and #theme_set > 0 then
     table.insert(server_args, "--theme-set")
@@ -271,6 +274,16 @@ function M.start()
 
   table.insert(server_args, "-m")
   table.insert(server_args, filename)
+
+  -- adds containers from config.options.marp_containers, one -c
+  -- option for each container
+
+  if config.options.containers and #config.options.containers > 0 then
+    for _, container in ipairs(config.options.containers) do
+      table.insert(server_args, "-c")
+      table.insert(server_args, container)
+    end
+  end
 
   local cmd = "npx"
   cmd, server_args = portable_group_spawn(cmd, server_args)

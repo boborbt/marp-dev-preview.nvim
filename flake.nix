@@ -34,7 +34,7 @@
             customRC = ''
               set rtp+=.
               lua << EOF
-              require('marp-dev-preview').setup({ auto_save=true, live_sync=true })
+              require('marp-dev-preview').setup({ auto_save=true, live_sync=true, containers={ "info", "warn", "idea"}, theme_set = { "themes", "theme/themes" } })
               EOF
               filetype on
             '';

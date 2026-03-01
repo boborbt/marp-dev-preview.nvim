@@ -91,6 +91,7 @@ You can customize the plugin by passing options to the `setup` function. Here ar
 `live_sync_waiting_interval`  | number  | `100`   | Interval in milliseconds between two attempts to check if the server is reachable when starting live sync.
  `port`              | number  | `8080`  | *base* port number for the connection with [marp-dev-preview](https://github.com/boborbt/marp-dev-preview). The plugin will try to connect to a random port computed as `port + n` where `n` is a random number between 0 and 1000. This is to avoid port conflicts if you run multiple instances of NeoVim or if you want to connect to different presentations.
 `theme_set`        | array | {}   | If set, it will be passed to the Marp Dev Preview server as the `--theme-set` argument. See [Marp Dev Preview server documentation](https://github.com/boborbt/marp-dev-preview) for details. The directory should be relative to the current working directory.
+`containers` | array | {} | if set it will start the marp-dev-preview server with the given container options. If not giben, it will start it with the default containers.
 
 Defaults:
 
