@@ -195,6 +195,10 @@ function M.open_browser(port)
   end
 
   local cmd_str = string.format('%s "%s"', open_cmd, url)
+  if uname == "Linux" then
+    cmd_str = cmd_str .. " &"
+  end
+
   local open_out = vim.fn.system(cmd_str)
   vim.notify(open_out, vim.log.levels.DEBUG)
 end
