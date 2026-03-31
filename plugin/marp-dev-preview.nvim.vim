@@ -11,12 +11,6 @@ if exists("g:loaded_marp_dev_preview_plugin")
 endif
 let g:loaded_marp_dev_preview_plugin= 1
 
-" Defines a package path for Lua. This facilitates importing the
-" Lua modules from the plugin's dependency directory.
-let s:plenary_path = expand('<sfile>:p:h:h') . '/lua/marp-dev-preview/deps/plenary.nvim/lua'
-exe "lua package.path = package.path .. ';" . s:plenary_path . "/?.lua'"
-exe "lua package.path = package.path .. ';" . s:plenary_path . "/?/init.lua'"
-
 " Exposes the plugin's functions for use as commands in Neovim.
 command! -nargs=0 MarpDevPreviewToggleLiveSync lua require("marp-dev-preview").toggle_live_sync()
 command! -nargs=0 MarpDevPreviewStartLiveSync lua require("marp-dev-preview").set_live_sync(true)

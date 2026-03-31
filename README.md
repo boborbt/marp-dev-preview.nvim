@@ -32,12 +32,12 @@ Currently the plugin **has been mainly tested on MacOS and Linux**. Please open 
 **Install with the plugin manager of your choice, here is a `lazy.nvim`** example (at the end of this README you can find a complete lazy.nvim example with key mappings):
 
 ```lua
-use {
-  'boborbt/marp-dev-preview.nvim',
-  requires = { 'nvim-lua/plenary.nvim' },
+{
+  "boborbt/marp-dev-preview.nvim",
+  dependencies = { "nvim-lua/plenary.nvim" },
   config = function()
-    require('marp-dev-preview').setup({ })
-  end
+    require("marp-dev-preview").setup({})
+  end,
 }
 ```
 The plugin provides support to start the Marp Dev Preview server for you. If you prefer to start it yourself, you can follow the instructions in the [Marp Dev Preview server repository](github.com/boborbt/marp-dev-preview) to set the server up. And use MarpDevPreviewStartAttach command to connect your marp buffer with the server.
@@ -153,6 +153,7 @@ return {
   "boborbt/marp-dev-preview.nvim",
   branch = "server-start",
   lazy = false,
+  dependencies = { "nvim-lua/plenary.nvim" },
   config = function()
     mdp = require('marp-dev-preview')
     mdp.setup({
@@ -221,5 +222,4 @@ return {
   }
 }
 ```
-
 
