@@ -365,6 +365,20 @@ describe('marp-dev-preview methods:', function()
     end)
   end)
 
+  describe('slide text objects', function()
+    it('maps visual iS to slide selection on marp buffers', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\nfirst slide\n---\nsecond slide\n")
+      vim.cmd("4")
+
+      local map = vim.fn.maparg("iS", "x", false, true)
+
+      assert.is_not.Nil(map.callback)
+      map.callback()
+      eq({ 4, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+  end)
+
 
   describe('live_sync option:', function()
     it('if on live_sync will be enabled on marp files', function()
