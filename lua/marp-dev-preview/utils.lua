@@ -24,15 +24,22 @@ M.is_marp = function()
   return false
 end
 
+
+M.is_sep = function(buf, lnum)
+  local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
+  return line and line:match("^%s*%-%-%-%s*$") ~= nil
+end
+
+
 M.current_slide_number = function()
   local slide_number = -1
   local cur_line = vim.api.nvim_win_get_cursor(0)[1]
-  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, cur_line, false)) do
+  for line_no = 1, cur_line do
     --  if line.sub(line, 1, 3) == "---" then
     -- we cannot do as above, since we wanto to matcb
     -- only lines that have no other non blank character
     -- on the same line
-    if line:match "^%s*%-%-%-%s*$" then
+    if M.is_sep(0, line_no) then
       slide_number = slide_number + 1
     end
   end
@@ -41,8 +48,8 @@ end
 
 M.num_slides = function()
   local slide_number = -1
-  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line:match "^%s*%-%-%-%s*$" then
+  for line_no = 1, vim.api.nvim_buf_line_count(0) do
+    if M.is_sep(0, line_no) then
       slide_number = slide_number + 1
     end
   end
@@ -56,8 +63,8 @@ local function find_first_code_row(bufnr, start_line)
   local in_comment = false
   local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, -1, false)
   local current = start_line
-  for _, line in ipairs(lines) do
-    if line:match "^%s*%-%-%-%s*$" then
+  for line in ipairs(lines) do
+    if M.is_sep(bufnr, current + 1) then
       return start_line
     end
 
@@ -94,8 +101,8 @@ M.buf_goto_slide = function(slide_number)
 
   local target_line = nil
   local current_slide = -1
-  for lineno, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-    if line:match "^%s*%-%-%-%s*$" then
+  for lineno = 1, vim.api.nvim_buf_line_count(0) do
+    if M.is_sep(0, lineno) then
       current_slide = current_slide + 1
       if current_slide == slide_number then
         target_line = lineno + 1
@@ -130,5 +137,40 @@ M.attempt_with_timeout = function(waittime, timeout, fn)
     end)
   end)
 end
+
+
+M.prev_sep = function(buf, from)
+  for lnum = from - 1, 1, -1 do
+    if M.is_sep(buf, lnum) then
+      return lnum
+    end
+  end
+  return nil
+end
+
+M.next_sep = function(buf, from, last)
+  for lnum = from + 1, last do
+    if M.is_sep(buf, lnum) then
+      return lnum
+    end
+  end
+  return nil
+end
+
+M.select_lines = function(start_lnum, end_lnum)
+  if start_lnum > end_lnum then
+    return
+  end
+
+  -- Reset an existing visual selection before creating ours.
+  if vim.fn.mode():match("[vV\022]") then
+    vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+  end
+
+  vim.api.nvim_win_set_cursor(0, { start_lnum, 0 })
+  vim.cmd("normal! V")
+  vim.api.nvim_win_set_cursor(0, { end_lnum, 0 })
+end
+
 
 return M

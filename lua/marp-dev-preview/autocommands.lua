@@ -88,6 +88,28 @@ function M.setup()
       server.stop_all()
     end
   })
+
+  --- creates text objects for marp slides
+  vim.api.nvim_create_autocmd("FileType", {
+    group = "MarpDevPreview",
+    pattern = "markdown",
+    callback = function(event)
+      -- abort if not marp file
+      if not utils.is_marp() then
+        return
+      end
+
+      local opts = { buffer = event.buf, silent = true }
+
+      vim.keymap.set({ "o", "x" }, "iS", function()
+        require("marp_textobject").select_slide(false)
+      end, vim.tbl_extend("force", opts, { desc = "Inner Marp slide" }))
+
+      vim.keymap.set({ "o", "x" }, "aS", function()
+        require("marp_textobject").select_slide(true)
+      end, vim.tbl_extend("force", opts, { desc = "Around Marp slide" }))
+    end,
+  })
 end
 
 return M

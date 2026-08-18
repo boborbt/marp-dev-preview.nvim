@@ -194,4 +194,39 @@ M.statusline = function()
   end
 end
 
+-- Slide selection
+
+function M.select_slide(around)
+  local buf = vim.api.nvim_get_current_buf()
+  local last = vim.api.nvim_buf_line_count(buf)
+  local cur = vim.api.nvim_win_get_cursor(0)[1]
+
+  -- If cursor is on a separator, operate on the slide below it.
+  if utils.is_sep(buf, cur) and cur < last then
+    cur = cur + 1
+  end
+
+  local before = utils.prev_sep(buf, cur)
+  local after = utils.next_sep(buf, cur, last)
+
+  local start_lnum
+  local end_lnum
+
+  if around then
+    -- Prefer including the trailing separator. For the final slide, include
+    -- the leading separator instead.
+    start_lnum = before and before + 1 or 1
+    end_lnum = after or last
+
+    if not after and before then
+      start_lnum = before
+    end
+  else
+    start_lnum = before and before + 1 or 1
+    end_lnum = after and after - 1 or last
+  end
+
+  utils.select_lines(start_lnum, end_lnum)
+end
+
 return M
