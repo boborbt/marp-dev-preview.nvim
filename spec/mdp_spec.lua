@@ -365,6 +365,50 @@ describe('marp-dev-preview methods:', function()
     end)
   end)
 
+  describe('slide navigation', function()
+    it('next_slide moves to the first content line of the next slide', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "---",
+        "second slide",
+        "still second slide",
+        "---",
+        "third slide"
+      })
+      vim.cmd("4")
+
+      mdp.next_slide()
+
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('prev_slide moves to the first content line of the previous slide', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "first slide",
+        "---",
+        "second slide",
+        "still second slide",
+        "---",
+        "third slide"
+      })
+      vim.cmd("9")
+
+      mdp.prev_slide()
+
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+  end)
+
   describe('slide text objects', function()
     it('maps visual iS to slide selection on marp buffers', function()
       mdp.setup({})

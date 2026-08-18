@@ -61,10 +61,10 @@ end
 -- at the end of buffer
 local function find_first_code_row(bufnr, start_line)
   local in_comment = false
-  local lines = vim.api.nvim_buf_get_lines(bufnr, start_line, -1, false)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, -1, false)
   local current = start_line
-  for line in ipairs(lines) do
-    if M.is_sep(bufnr, current + 1) then
+  for _, line in ipairs(lines) do
+    if M.is_sep(bufnr, current) then
       return start_line
     end
 
@@ -75,7 +75,7 @@ local function find_first_code_row(bufnr, start_line)
           in_comment = true
           i = i + 4
         elseif line:sub(i, i) :match "%S" then
-          return current + 1
+          return current
         else
           i = i + 1
         end
