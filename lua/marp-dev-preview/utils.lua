@@ -157,6 +157,57 @@ M.next_sep = function(buf, from, last)
   return nil
 end
 
+local function is_box_open_line(line)
+  return line and line:match("^%s*:::%s*%S") ~= nil
+end
+
+local function is_box_close_line(line)
+  return line and line:match("^%s*:::%s*$") ~= nil
+end
+
+M.current_box_range = function(buf, cur)
+  local stack = {}
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+
+  for lnum, line in ipairs(lines) do
+    if is_box_open_line(line) then
+      stack[#stack + 1] = lnum
+    elseif is_box_close_line(line) then
+      local start_lnum = stack[#stack]
+      stack[#stack] = nil
+
+      if start_lnum and cur >= start_lnum and cur <= lnum then
+        return start_lnum, lnum
+      end
+    end
+  end
+
+  return nil, nil
+end
+
+M.next_box = function(buf, from, last)
+  for lnum = from + 1, last do
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
+    if is_box_open_line(line) then
+      return lnum
+    end
+  end
+  return nil
+end
+
+M.prev_box = function(buf, from)
+  local current_start = M.current_box_range(buf, from)
+  local search_from = current_start or from
+
+  for lnum = search_from - 1, 1, -1 do
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
+    if is_box_open_line(line) then
+      return lnum
+    end
+  end
+  return nil
+end
+
 M.select_lines = function(start_lnum, end_lnum)
   if start_lnum > end_lnum then
     return

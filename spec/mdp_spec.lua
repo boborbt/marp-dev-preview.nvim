@@ -407,6 +407,25 @@ describe('marp-dev-preview methods:', function()
 
       eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
     end)
+
+    it('maps normal ]S and [S to slide movement on marp buffers', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\nfirst slide\n---\nsecond slide\n---\nthird slide\n")
+      vim.cmd("4")
+
+      local next_map = vim.fn.maparg("]S", "n", false, true)
+      local prev_map = vim.fn.maparg("[S", "n", false, true)
+
+      assert.is_not.Nil(next_map.callback)
+      assert.is_not.Nil(prev_map.callback)
+
+      next_map.callback()
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+
+      vim.cmd("8")
+      prev_map.callback()
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
   end)
 
   describe('slide text objects', function()
@@ -420,6 +439,120 @@ describe('marp-dev-preview methods:', function()
       assert.is_not.Nil(map.callback)
       map.callback()
       eq({ 4, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+  end)
+
+  describe('box text objects', function()
+    it('selects the inner content of the current ::: container', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "before",
+        "::: warn",
+        "box content",
+        "more box content",
+        ":::",
+        "after"
+      })
+      vim.cmd("6")
+
+      mdp.select_box(false)
+
+      eq({ 7, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('selects the current ::: container including delimiters', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "before",
+        "::: warn",
+        "box content",
+        "more box content",
+        ":::",
+        "after"
+      })
+      vim.cmd("6")
+
+      mdp.select_box(true)
+
+      eq({ 8, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('maps visual iC to inner ::: container selection on marp buffers', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\n::: warn\nbox content\n:::\n")
+      vim.cmd("5")
+
+      local map = vim.fn.maparg("iC", "x", false, true)
+
+      assert.is_not.Nil(map.callback)
+      map.callback()
+      eq({ 5, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('goto_next_box moves to the first line inside the next ::: container', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "before",
+        "::: warn",
+        "first box",
+        ":::",
+        "middle",
+        "::: info",
+        "second box",
+        ":::"
+      })
+      vim.cmd("4")
+
+      mdp.goto_next_box()
+
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('goto_prev_box moves to the first line inside the previous ::: container', function()
+      vim.cmd("enew")
+      vim.cmd("set filetype=markdown")
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+        "---",
+        "marp:true",
+        "---",
+        "before",
+        "::: warn",
+        "first box",
+        ":::",
+        "middle",
+        "::: info",
+        "second box",
+        ":::"
+      })
+      vim.cmd("10")
+
+      mdp.goto_prev_box()
+
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('maps normal ]C to next ::: container on marp buffers', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\nbefore\n::: warn\nbox content\n:::\n")
+      vim.cmd("4")
+
+      local map = vim.fn.maparg("]C", "n", false, true)
+
+      assert.is_not.Nil(map.callback)
+      map.callback()
+      eq({ 6, 0 }, vim.api.nvim_win_get_cursor(0))
     end)
   end)
 

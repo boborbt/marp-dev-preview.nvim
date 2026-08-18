@@ -16,7 +16,7 @@ Currently the plugin **has been mainly tested on MacOS and Linux**. Please open 
 - **Next/Prev Slides** - provides commands to navigate to the next/previous slide in your markdown file.
 - **Open Preview in Browser** - Automatically opens the Marp Dev Preview in your default web browser when the server starts.
 - **Lualine Integration** - Displays live sync status in your status line.
-- **Slide text objects** - Provides text objects for selecting the current slide or the current slide's content.
+- **Slide and container text objects/motions** - `iS`/`aS` select slide content/slide blocks; `]S`/`[S` jump to the next/previous slide; `iC`/`aC` select `:::` container content/container blocks; `]C`/`[C` jump to the next/previous `:::` container.
 
 ---
 

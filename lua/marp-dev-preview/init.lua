@@ -229,4 +229,42 @@ function M.select_slide(around)
   utils.select_lines(start_lnum, end_lnum)
 end
 
+function M.select_box(around)
+  local buf = vim.api.nvim_get_current_buf()
+  local cur = vim.api.nvim_win_get_cursor(0)[1]
+  local start_lnum, end_lnum = utils.current_box_range(buf, cur)
+
+  if not start_lnum or not end_lnum then
+    return
+  end
+
+  if not around then
+    start_lnum = start_lnum + 1
+    end_lnum = end_lnum - 1
+  end
+
+  utils.select_lines(start_lnum, end_lnum)
+end
+
+function M.goto_next_box()
+  local buf = vim.api.nvim_get_current_buf()
+  local last = vim.api.nvim_buf_line_count(buf)
+  local cur = vim.api.nvim_win_get_cursor(0)[1]
+  local box_lnum = utils.next_box(buf, cur, last)
+
+  if box_lnum then
+    vim.api.nvim_win_set_cursor(0, { box_lnum + 1, 0 })
+  end
+end
+
+function M.goto_prev_box()
+  local buf = vim.api.nvim_get_current_buf()
+  local cur = vim.api.nvim_win_get_cursor(0)[1]
+  local box_lnum = utils.prev_box(buf, cur)
+
+  if box_lnum then
+    vim.api.nvim_win_set_cursor(0, { box_lnum + 1, 0 })
+  end
+end
+
 return M

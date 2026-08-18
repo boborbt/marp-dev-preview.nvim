@@ -108,6 +108,30 @@ function M.setup()
       vim.keymap.set({ "o", "x" }, "aS", function()
         marp.select_slide(true)
       end, vim.tbl_extend("force", opts, { desc = "Around Marp slide" }))
+
+      vim.keymap.set({ "n", "o", "x" }, "]S", function()
+        marp.next_slide()
+      end, vim.tbl_extend("force", opts, { desc = "Next Marp slide" }))
+
+      vim.keymap.set({ "n", "o", "x" }, "[S", function()
+        marp.prev_slide()
+      end, vim.tbl_extend("force", opts, { desc = "Previous Marp slide" }))
+
+      vim.keymap.set({ "o", "x" }, "iC", function()
+        marp.select_box(false)
+      end, vim.tbl_extend("force", opts, { desc = "Inner Marp container" }))
+
+      vim.keymap.set({ "o", "x" }, "aC", function()
+        marp.select_box(true)
+      end, vim.tbl_extend("force", opts, { desc = "Around Marp container" }))
+
+      vim.keymap.set({ "n", "o", "x" }, "]C", function()
+        marp.goto_next_box()
+      end, vim.tbl_extend("force", opts, { desc = "Next Marp container" }))
+
+      vim.keymap.set({ "n", "o", "x" }, "[C", function()
+        marp.goto_prev_box()
+      end, vim.tbl_extend("force", opts, { desc = "Previous Marp container" }))
     end,
   })
 end
