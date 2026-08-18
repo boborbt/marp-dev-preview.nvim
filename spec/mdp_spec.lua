@@ -485,6 +485,30 @@ describe('marp-dev-preview methods:', function()
       eq({ 8, 0 }, vim.api.nvim_win_get_cursor(0))
     end)
 
+    it('viC selects the inner ::: container from visual mode', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\nbefore\n::: warn\nbox content\nmore box content\n:::\nafter\n")
+      vim.cmd("6")
+
+      vim.cmd("normal viC")
+
+      eq("V", vim.fn.mode())
+      eq(6, vim.fn.line("v"))
+      eq({ 7, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
+    it('vaC selects the current ::: container including delimiters from visual mode', function()
+      mdp.setup({})
+      setup_marp_file("---\nmarp:true\n---\nbefore\n::: warn\nbox content\nmore box content\n:::\nafter\n")
+      vim.cmd("6")
+
+      vim.cmd("normal vaC")
+
+      eq("V", vim.fn.mode())
+      eq(5, vim.fn.line("v"))
+      eq({ 8, 0 }, vim.api.nvim_win_get_cursor(0))
+    end)
+
     it('maps visual iC to inner ::: container selection on marp buffers', function()
       mdp.setup({})
       setup_marp_file("---\nmarp:true\n---\n::: warn\nbox content\n:::\n")

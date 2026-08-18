@@ -213,9 +213,10 @@ M.select_lines = function(start_lnum, end_lnum)
     return
   end
 
-  -- Reset an existing visual selection before creating ours.
+  -- Reset an existing visual selection before creating ours. This must be
+  -- synchronous; feedkeys() can leave the old visual anchor in place.
   if vim.fn.mode():match("[vV\022]") then
-    vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+    vim.cmd("normal! \27")
   end
 
   vim.api.nvim_win_set_cursor(0, { start_lnum, 0 })
