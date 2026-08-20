@@ -111,6 +111,9 @@ require('marp-dev-preview').setup({
   live_sync_start_timeout = 3000,
   live_sync_waiting_interval = 500,
 
+  -- delay after text changes before refreshing the preview
+  live_sync_debounce = 250,
+
   -- base port for the marp-dev-preview server
   port = 8080,
 

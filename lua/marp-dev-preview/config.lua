@@ -11,6 +11,7 @@ M.options = {
   live_sync_wait_interval = 500,
   live_sync_start_timeout = 3000,
 
+  -- delay after text changes before refreshing the preview
   live_sync_debounce = 250,
 
   live_sync = false,

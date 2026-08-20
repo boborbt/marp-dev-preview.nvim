@@ -630,6 +630,35 @@ describe("marp-dev-preview methods:", function()
     config.options.live_sync_debounce = original_debounce
   end)
 
+  it("uses the configured live sync debounce interval", function()
+    local original_new_timer = vim.loop.new_timer
+    local original_is_running = server.is_running
+    local started_waittime = nil
+
+    server.is_running = function()
+      return true
+    end
+
+    vim.loop.new_timer = function()
+      return {
+        start = function(_, waittime)
+          started_waittime = waittime
+        end,
+        stop = function() end,
+        close = function() end,
+      }
+    end
+
+    mdp.setup({ live_sync = true, live_sync_debounce = 123 })
+    setup_marp_file()
+    vim.api.nvim_exec_autocmds("TextChanged", { buffer = 0 })
+
+    eq(123, started_waittime)
+
+    vim.loop.new_timer = original_new_timer
+    server.is_running = original_is_running
+  end)
+
   it("coalesces overlapping refreshes and sends the latest pending markdown", function()
     local config = require("marp-dev-preview.config")
     local original_refresh_async = server.refresh_async
