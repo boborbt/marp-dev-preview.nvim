@@ -9,6 +9,65 @@ function M.setup()
 
   vim.api.nvim_create_augroup("MarpDevPreview", { clear = true })
 
+  local function send_latest_refresh(bufnr)
+    local refresh_state = state.refresh[bufnr]
+    if not refresh_state or not refresh_state.pending then
+      return
+    end
+
+    local markdown = refresh_state.pending
+    refresh_state.pending = nil
+    refresh_state.running = true
+
+    server.refresh_async(markdown, function(ok)
+      local current_state = state.refresh[bufnr]
+      if not current_state then
+        return
+      end
+
+      current_state.running = false
+
+      if not ok then
+        marp.set_live_sync(false)
+        return
+      end
+
+      if current_state.pending then
+        send_latest_refresh(bufnr)
+      end
+    end)
+  end
+
+  local function schedule_refresh(bufnr)
+    local refresh_state = state.refresh[bufnr]
+    if not refresh_state then
+      refresh_state = {}
+      state.refresh[bufnr] = refresh_state
+    end
+
+    if refresh_state.timer then
+      refresh_state.timer:stop()
+    else
+      refresh_state.timer = vim.loop.new_timer()
+    end
+
+    refresh_state.timer:start(config.options.live_sync_debounce, 0, function()
+      vim.schedule(function()
+        local current_state = state.refresh[bufnr]
+        if not current_state then
+          return
+        end
+
+        local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+        current_state.pending = table.concat(lines, "\n")
+
+        if not current_state.running then
+          send_latest_refresh(bufnr)
+        end
+      end)
+    end)
+  end
+
   vim.api.nvim_create_autocmd({ "FileType" }, {
     group = "MarpDevPreview",
     pattern = "markdown",
@@ -25,7 +84,7 @@ function M.setup()
       end
 
       marp.set_live_sync(config.options.live_sync)
-    end
+    end,
   })
 
   vim.api.nvim_create_autocmd("CursorMoved", {
@@ -36,35 +95,26 @@ function M.setup()
         return
       end
 
-      ok, _ = marp.goto_current_slide()
+      local ok, _ = marp.goto_current_slide()
       if not ok then
         vim.notify("Failed to sync current slide ", vim.log.levels.ERROR)
         marp.set_live_sync(false)
         return
       end
-    end
+    end,
   })
 
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     group = "MarpDevPreview",
     pattern = "*.md",
-    callback = function()
+    callback = function(args)
       if not marp.is_live_sync_on() then
         return
       end
 
-      local bufnr = vim.api.nvim_get_current_buf()
-      vim.notify("Refreshing buffer: " .. bufnr, vim.log.levels.DEBUG)
-
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-      local text = table.concat(lines, "\n")
-      local ok, response = server.refresh(text)
-
-      if not ok then
-        marp.set_live_sync(false)
-        return
-      end
-    end
+      vim.notify("Scheduling refresh for buffer: " .. args.buf, vim.log.levels.DEBUG)
+      schedule_refresh(args.buf)
+    end,
   })
 
   vim.api.nvim_create_autocmd("BufWipeout", {
@@ -72,13 +122,24 @@ function M.setup()
     pattern = "*.md",
     callback = function(args)
       local bufnr = args.buf
-      local filenae = vim.api.nvim_buf_get_name(bufnr)
       state.live_buffers[bufnr] = nil
+      local refresh_state = state.refresh[bufnr]
+      if refresh_state and refresh_state.timer then
+        refresh_state.timer:stop()
+        refresh_state.timer:close()
+      end
+      state.refresh[bufnr] = nil
+      local any_live = false
+      for _, live in pairs(state.live_buffers) do
+        any_live = any_live or live
+      end
+
+      local filename = vim.api.nvim_buf_get_name(bufnr)
 
       if not any_live and server.is_running() then
         server.stop(filename)
       end
-    end
+    end,
   })
 
   vim.api.nvim_create_autocmd("VimLeavePre", {
@@ -86,7 +147,7 @@ function M.setup()
     pattern = "*",
     callback = function()
       server.stop_all()
-    end
+    end,
   })
 
   --- creates text objects for marp slides

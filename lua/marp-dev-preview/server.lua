@@ -2,7 +2,7 @@ utils = require("marp-dev-preview.utils")
 config = require("marp-dev-preview.config")
 
 local M = {
-  server_jobs = {}
+  server_jobs = {},
 }
 
 local config = require("marp-dev-preview.config")
@@ -20,9 +20,7 @@ function M.is_running()
   end
 
   local chk = M.check_server(server_job.port)
-  vim.notify("Check server returned: " .. tostring(chk),
-    vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
+  vim.notify("Check server returned: " .. tostring(chk), vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
   return chk == "200", "Check"
 end
@@ -41,7 +39,6 @@ function M.get_server_job()
 
   return server_job, "Found"
 end
-
 
 -- Check if the server is running by sending a request to the given Port
 -- Returns the HTTP status code if running, nil otherwise
@@ -64,25 +61,21 @@ end
 
 function M.attach(port)
   if not port then
-    vim.notify("Port not specified, cannot attach",
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
+    vim.notify("Port not specified, cannot attach", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return nil
   end
 
   vim.notify("Attaching to server at http://localhost:" .. port, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
   if not M.check_server(port) then
-    vim.notify("No server running at the specified port",
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
+    vim.notify("No server running at the specified port", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return nil
   end
 
   M.server_jobs[vim.api.nvim_buf_get_name(0)] = {
     port = port,
     shutdown = function() end,
-    pid = nil
+    pid = nil,
   }
 
   M.open_browser(port)
@@ -97,31 +90,32 @@ local function kill_job(server_job, title)
 
   if uname == "Linux" then
     -- Negative PID kills the process group started with setsid
-    kill_cmd = { 'kill', '-TERM', '-' .. pid }
+    kill_cmd = { "kill", "-TERM", "-" .. pid }
   else
     -- macOS: kill the process directly
-    kill_cmd = { 'kill', '-TERM', pid }
+    kill_cmd = { "kill", "-TERM", pid }
   end
 
-  local killstring = table.concat(kill_cmd, ' ')
-  vim.notify("Kill command: " .. killstring,
-    vim.log.levels.DEBUG,
-    { title = title or "Process Kill" })
+  local killstring = table.concat(kill_cmd, " ")
+  vim.notify("Kill command: " .. killstring, vim.log.levels.DEBUG, { title = title or "Process Kill" })
 
   local kill_out = vim.fn.systemlist(kill_cmd)
   local kill_status = vim.v.shell_error
 
   if kill_status ~= 0 then
-    vim.notify("Kill failed (exit code " .. kill_status .. "): " .. table.concat(kill_out, '\n'),
+    vim.notify(
+      "Kill failed (exit code " .. kill_status .. "): " .. table.concat(kill_out, "\n"),
       vim.log.levels.ERROR,
-      { title = title or "Process Kill" })
+      { title = title or "Process Kill" }
+    )
   else
-    vim.notify("Kill output: " .. table.concat(kill_out, '\n'),
+    vim.notify(
+      "Kill output: " .. table.concat(kill_out, "\n"),
       vim.log.levels.DEBUG,
-      { title = title or "Process Kill" })
+      { title = title or "Process Kill" }
+    )
   end
 end
-
 
 -- Stop the server associated with the current buffer or the given filename
 -- If no filename is given, it defaults to the current buffer's filename
@@ -168,16 +162,12 @@ end
 -- @return nil
 function M.open_browser(port)
   if not port then
-    vim.notify("Port not specified, cannot open browser",
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
+    vim.notify("Port not specified, cannot open browser", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return
   end
-  vim.notify("Opening browser at http://localhost:" .. port,
-    vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
+  vim.notify("Opening browser at http://localhost:" .. port, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
 
-  local url ="http://localhost:" .. port
+  local url = "http://localhost:" .. port
   local uname = vim.loop.os_uname().sysname
   local open_cmd = nil
 
@@ -188,9 +178,7 @@ function M.open_browser(port)
   elseif uname:match("Windows") then
     open_cmd = "start"
   else
-    vim.notify("Unsupported OS: " .. uname,
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
+    vim.notify("Unsupported OS: " .. uname, vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return
   end
 
@@ -206,29 +194,21 @@ end
 -- returns true if timer should stop, false otherwise
 local function try_open_browser(filename, port)
   if M.server_jobs[filename] == nil then
-    vim.notify("Server job no longer exists",
-      vim.log.levels.WARN,
-      { title = "Marp Dev Preview" })
+    vim.notify("Server job no longer exists", vim.log.levels.WARN, { title = "Marp Dev Preview" })
     return true
   end
 
   if not port then
-    vim.notify("Port not assigned.",
-      vim.log.levels.ERROR,
-      { title = "Marp Dev Preview" })
+    vim.notify("Port not assigned.", vim.log.levels.ERROR, { title = "Marp Dev Preview" })
     return true
   end
 
   if not M.check_server(port) then
-    vim.notify("Server not responding yet, waiting...",
-      vim.log.levels.DEBUG,
-      { title = "Marp Dev Preview" })
+    vim.notify("Server not responding yet, waiting...", vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
     return false
   end
 
-  vim.notify("Server is up and running!",
-    vim.log.levels.INFO,
-    { title = "Marp Dev Preview" })
+  vim.notify("Server is up and running!", vim.log.levels.INFO, { title = "Marp Dev Preview" })
 
   pcall(M.open_browser, port)
 
@@ -253,9 +233,7 @@ end
 -- @return nil
 function M.start()
   if M.is_running() then
-    vim.notify("Server is already running, bailing out",
-      vim.log.levels.WARN,
-      { title = "Marp Dev Preview" })
+    vim.notify("Server is already running, bailing out", vim.log.levels.WARN, { title = "Marp Dev Preview" })
     return
   end
   -- Uses npx to start the marp server
@@ -267,7 +245,8 @@ function M.start()
   local server_args = {
     "marp-dev-preview",
     "--port",
-    tostring(port) }
+    tostring(port),
+  }
 
   if theme_set and #theme_set > 0 then
     table.insert(server_args, "--theme-set")
@@ -292,9 +271,11 @@ function M.start()
   local cmd = "npx"
   cmd, server_args = portable_group_spawn(cmd, server_args)
 
-  vim.notify("Starting server with args: npx " .. table.concat(server_args, " "),
+  vim.notify(
+    "Starting server with args: npx " .. table.concat(server_args, " "),
     vim.log.levels.DEBUG,
-    { title = "Marp Dev Preview" })
+    { title = "Marp Dev Preview" }
+  )
 
   local server_job = Job:new({
     command = cmd,
@@ -302,18 +283,14 @@ function M.start()
     on_stdout = function(_, data)
       if data then
         vim.schedule(function()
-          vim.notify("[Marp] " .. data,
-            vim.log.levels.DEBUG,
-            { title = "Marp Dev Preview" })
+          vim.notify("[Marp] " .. data, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
         end)
       end
     end,
     on_stderr = function(_, data)
       if data then
         vim.schedule(function()
-          vim.notify("[Marp] " .. data,
-            vim.log.levels.WARN,
-            { title = "Marp Dev Preview" })
+          vim.notify("[Marp] " .. data, vim.log.levels.WARN, { title = "Marp Dev Preview" })
         end)
       end
     end,
@@ -321,7 +298,11 @@ function M.start()
       if return_val ~= 0 then
         local result = table.concat(j:result(), "\n")
         vim.schedule(function()
-          vim.notify("[Marp] Server exited with code " .. return_val .. "\n" .. result, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
+          vim.notify(
+            "[Marp] Server exited with code " .. return_val .. "\n" .. result,
+            vim.log.levels.DEBUG,
+            { title = "Marp Dev Preview" }
+          )
         end)
       else
         vim.schedule(function()
@@ -338,7 +319,7 @@ function M.start()
   server_job:start()
 
   utils.attempt_with_timeout(config.options.open_browser_wait_interval, config.options.open_browser_timeout, function()
-      return try_open_browser(filename, port)
+    return try_open_browser(filename, port)
   end)
 
   vim.notify("Server started with pid: " .. server_job.pid, vim.log.levels.DEBUG, { title = "Marp Dev Preview" })
@@ -354,7 +335,6 @@ function M.server_cmd(cmd, arg)
   local curl = require("plenary.curl")
 
   local call_curl = function()
-
     local filename = vim.api.nvim_buf_get_name(0)
     if filename == nil or filename == "" then
       return nil, "No file associated with the current buffer"
@@ -390,11 +370,57 @@ M.goto_slide = function(slide_number)
   return M.server_cmd("goto", { key = "slide", value = slide_number })
 end
 
-
-
 -- Refresh the marp server with the given markdown Content-Type
 -- @param markdown string The markdown content to send to the server_jobs
--- @return boolean, table|nil A boolean indicating success, and the response table or nil
+-- @param callback function A function called with success boolean and response table or error string
+-- @return nil
+function M.refresh_async(markdown, callback)
+  local filename = vim.api.nvim_buf_get_name(0)
+  if filename == nil or filename == "" then
+    vim.schedule(function()
+      callback(false, "No file associated with the current buffer")
+    end)
+    return
+  end
+
+  local server_job = M.server_jobs[filename]
+  if server_job == nil then
+    vim.schedule(function()
+      callback(false, "No server job found for the current file")
+    end)
+    return
+  end
+
+  local port = server_job.port
+  if port == nil then
+    vim.schedule(function()
+      callback(false, "No port found for the current server job, this is a bug. Please report it.")
+    end)
+    return
+  end
+
+  vim.system({
+    "curl",
+    "-sS",
+    "-X",
+    "POST",
+    "http://localhost:" .. port .. "/api/reload",
+    "-H",
+    "Content-Type: text/markdown",
+    "--data-binary",
+    "@-",
+    "--max-time",
+    tostring((config.options.server_cmds_timeout or 1000) / 1000),
+  }, {
+    stdin = markdown,
+    text = true,
+  }, function(result)
+    vim.schedule(function()
+      callback(result.code == 0, result)
+    end)
+  end)
+end
+
 function M.refresh(markdown)
   local curl = require("plenary.curl")
   local call_curl = function()
@@ -414,7 +440,7 @@ function M.refresh(markdown)
     return curl.post("http://localhost:" .. port .. "/api/reload", {
       body = markdown,
       headers = { ["Content-Type"] = "text/markdown" },
-      timeout = config.options.timeout,
+      timeout = config.options.server_cmds_timeout,
     })
   end
 

@@ -11,10 +11,12 @@ M.options = {
   live_sync_wait_interval = 500,
   live_sync_start_timeout = 3000,
 
+  live_sync_debounce = 250,
+
   live_sync = false,
 
   -- array like { "/path/to/theme1", "/path/to/theme2" }
-  theme_set= {}
+  theme_set = {},
 }
 
 M.setup = function(config)
@@ -28,7 +30,7 @@ M.setup = function(config)
   end
 
   vim.api.nvim_set_hl(0, "LiveSyncOn", { fg = "#00ff00" })
-  vim.api.nvim_set_hl(0, "LiveSyncOff",  { fg = "#ff0000" })
+  vim.api.nvim_set_hl(0, "LiveSyncOff", { fg = "#ff0000" })
 end
 
 return M
